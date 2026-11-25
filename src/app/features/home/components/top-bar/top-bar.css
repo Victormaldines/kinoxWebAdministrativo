@@ -3,13 +3,13 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 80;
+  z-index: 95;
   padding: 1.15rem var(--kx-gutter);
   border-bottom: 1px dashed transparent;
   background: linear-gradient(
     to bottom,
-    rgba(5, 5, 4, 0.88) 0%,
-    rgba(5, 5, 4, 0.42) 68%,
+    rgba(5, 5, 4, 0.92) 0%,
+    rgba(5, 5, 4, 0.56) 68%,
     transparent 100%
   );
   transition:
@@ -28,9 +28,9 @@
 
 .kx-topbar.is-scrolled {
   padding-block: 0.78rem;
-  background: rgba(8, 8, 7, 0.94);
+  background: var(--kx-obsidian);
   border-bottom-color: var(--kx-rule);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 28px rgba(5, 5, 4, 0.72);
 }
 
 .kx-topbar__inner {

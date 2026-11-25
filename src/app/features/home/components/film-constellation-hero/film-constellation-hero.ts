@@ -256,11 +256,11 @@ export class FilmConstellationHero {
     this.introStage.set('logo');
     this.introReadyChange.emit(false);
 
-    // 1. Logo Kinox alone on obsidian black (0ms -> 900ms), then dissolves into central eye
+    // 1. Logo Kinox reveals (0ms -> 680ms), then "Sempre à frente" fades briefly below (540ms -> 1660ms)
     this.introTimers.push(
       setTimeout(() => {
         this.introStage.set('eye');
-      }, 900),
+      }, 1660),
     );
 
     if (!this.showConstellation()) {
@@ -269,24 +269,24 @@ export class FilmConstellationHero {
         setTimeout(() => {
           this.introStage.set('ready');
           this.introReadyChange.emit(true);
-        }, 1500),
+        }, 2260),
       );
       return;
     }
 
-    // 2. Central eye establishes (900ms -> 1450ms), then films emerge around the ellipsoid
+    // 2. Central eye establishes (1660ms -> 2210ms), then films emerge around the ellipsoid
     this.introTimers.push(
       setTimeout(() => {
         this.introStage.set('films');
-      }, 1450),
+      }, 2210),
     );
 
-    // 3. Films settled into orbit (2350ms) -> unlock UI chrome, hover, and page scroll
+    // 3. Films settled into orbit (3100ms) -> unlock UI chrome, hover, and page scroll
     this.introTimers.push(
       setTimeout(() => {
         this.introStage.set('ready');
         this.introReadyChange.emit(true);
-      }, 2350),
+      }, 3100),
     );
   }
 

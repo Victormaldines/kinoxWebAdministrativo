@@ -6,14 +6,17 @@
   (pointermove)="onStagePointerMove($event)"
   (pointerleave)="onStagePointerLeave()"
 >
-  <!-- Opening Sequence Stage 1: Kinox Logo Alone on Pure Black -->
+  <!-- Opening Sequence Stage 1: Kinox Logo Alone on Pure Black + Sequential Tagline -->
   <div
     class="kx-intro-logo"
     [class.is-hidden]="introStage() !== 'logo'"
     [attr.aria-hidden]="introStage() !== 'logo'"
     (click)="skipIntroIfActive()"
   >
-    <span class="kx-intro-logo__word">kīnox</span>
+    <div class="kx-intro-logo__stack">
+      <span class="kx-intro-logo__word">kīnox</span>
+      <span class="kx-intro-logo__tagline">Sempre à frente</span>
+    </div>
   </div>
 
   <!-- Archival 35mm Film-Strip Side Sprocket Rails -->
