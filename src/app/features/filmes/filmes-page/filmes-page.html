@@ -30,7 +30,7 @@
     </header>
 
     <!-- Operational Ledger -->
-    <div class="kx-ledger" role="region" aria-label="Resumo do catálogo de filmes">
+    <div class="kx-ledger kx-filmes-ledger" role="region" aria-label="Resumo do catálogo de filmes">
       <div class="kx-ledger__cell">
         <span class="kx-ledger__label kx-mono">TOTAL NO CATÁLOGO</span>
         <strong class="kx-ledger__value kx-mono">{{ filmes().length }}</strong>
@@ -40,11 +40,6 @@
         <span class="kx-ledger__label kx-mono">GÊNEROS DISPONÍVEIS</span>
         <strong class="kx-ledger__value kx-mono">{{ generos().length }}</strong>
         <span class="kx-ledger__meta kx-mono">carregados de GET /generos</span>
-      </div>
-      <div class="kx-ledger__cell">
-        <span class="kx-ledger__label kx-mono">DURAÇÃO MÉDIA</span>
-        <strong class="kx-ledger__value kx-mono">{{ averageDuration() }} MIN</strong>
-        <span class="kx-ledger__meta kx-mono">média do acervo atual</span>
       </div>
       <div class="kx-ledger__cell kx-halftone-subtle">
         <span class="kx-ledger__label kx-mono">RESULTADOS VISÍVEIS</span>
@@ -204,7 +199,7 @@
             </div>
 
             <div class="kx-film-specs kx-mono">
-              <span>{{ film.duracao }} MIN</span>
+              <span>{{ formatDuration(film.duracao) }}</span>
               <span class="kx-age-pill">{{ formatAgeRating(film.classificacaoIndicativa) }}</span>
             </div>
 

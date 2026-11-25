@@ -1,0 +1,245 @@
+@if (isOpen()) {
+  <div class="kx-sdrawer-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+  <aside
+    class="kx-sdrawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Cadastrar nova sessão"
+  >
+    <div class="kx-sdrawer__head">
+      <span class="kx-mono kx-sdrawer__route">POST /sessoes</span>
+      <button
+        type="button"
+        class="kx-sdrawer__close kx-mono"
+        [disabled]="isSubmitting()"
+        (click)="onClose()"
+      >
+        ESC · FECHAR
+      </button>
+    </div>
+
+    <div class="kx-sdrawer__body">
+      <h2 class="kx-display kx-sdrawer__title">Nova sessão</h2>
+
+      @if (isLoadingOptions()) {
+        <div class="kx-sdrawer__loading kx-mono" role="status" aria-busy="true">
+          Carregando filmes e salas disponíveis na Kinox API...
+        </div>
+      } @else if (optionsError(); as err) {
+        <div class="kx-alert kx-alert--danger" role="alert">
+          <p class="kx-alert__title">{{ err.title }}</p>
+          <p class="kx-alert__detail">{{ err.detail }}</p>
+          <div class="kx-sdrawer__retry">
+            <button type="button" class="kx-btn kx-btn-ghost kx-btn-sm" (click)="retryOptions.emit()">
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      } @else {
+        <form class="kx-sdrawer__form" novalidate (submit)="onSubmit($event)">
+          <!-- Film Selection -->
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-sessao-filme">
+              <span>Filme em exibição</span>
+              <span class="kx-mono">{{ availableFilmes().length }} NO CATÁLOGO</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="filmeError() !== null">
+              <select
+                id="kx-sessao-filme"
+                class="kx-field__select"
+                [value]="selectedFilmeId() ?? ''"
+                (change)="onFilmeChange($event)"
+              >
+                @if (availableFilmes().length === 0) {
+                  <option value="">Nenhum filme cadastrado</option>
+                } @else {
+                  @for (filme of availableFilmes(); track filme.id) {
+                    <option [value]="filme.id" [selected]="filme.id === selectedFilmeId()">
+                      {{ filme.nome }} ({{ filme.duracao }} min)
+                    </option>
+                  }
+                }
+              </select>
+            </div>
+            @if (filmeError(); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          <!-- Room Selection -->
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-sessao-sala">
+              <span>Sala de projeção</span>
+              <span class="kx-mono">{{ sortedSalas().length }} SALAS</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="salaError() !== null">
+              <select
+                id="kx-sessao-sala"
+                class="kx-field__select"
+                [value]="selectedSalaId() ?? ''"
+                (change)="onSalaChange($event)"
+              >
+                @if (sortedSalas().length === 0) {
+                  <option value="">Nenhuma sala cadastrada</option>
+                } @else {
+                  @for (sala of sortedSalas(); track sala.id) {
+                    <option [value]="sala.id" [selected]="sala.id === selectedSalaId()">
+                      Sala {{ formatSalaNumero(sala.numero) }} · {{ formatSalaTech(sala) }} ·
+                      {{ sala.qtdAssentos }} assentos{{ sala.isDisponivel ? '' : ' (Pausada)' }}
+                    </option>
+                  }
+                }
+              </select>
+            </div>
+            @if (salaError(); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          <!-- Date & Time Row -->
+          <div class="kx-sdrawer__row">
+            <div class="kx-field">
+              <label class="kx-field__label" for="kx-sessao-data">
+                <span>Data da exibição</span>
+              </label>
+              <div class="kx-field__control" [class.is-invalid]="fieldError('data') !== null">
+                <input
+                  id="kx-sessao-data"
+                  type="date"
+                  class="kx-field__input kx-field__input--mono"
+                  [formField]="sessaoForm.data"
+                  (input)="clearScheduleError()"
+                />
+              </div>
+              @if (fieldError('data'); as err) {
+                <p class="kx-field__error" role="alert">{{ err }}</p>
+              }
+            </div>
+
+            <div class="kx-field">
+              <label class="kx-field__label" for="kx-sessao-horario">
+                <span>Horário de início</span>
+                <span class="kx-mono">24H</span>
+              </label>
+              <div class="kx-field__control" [class.is-invalid]="fieldError('horarioInicio') !== null">
+                <input
+                  id="kx-sessao-horario"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="19:30"
+                  class="kx-field__input kx-field__input--mono"
+                  [formField]="sessaoForm.horarioInicio"
+                  (input)="onMilitaryTimeInput($event)"
+                />
+              </div>
+              @if (fieldError('horarioInicio'); as err) {
+                <p class="kx-field__error" role="alert">{{ err }}</p>
+              }
+            </div>
+          </div>
+
+          @if (schedulePastError(); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+
+          <!-- Audio Mode (LEG / DUB) -->
+          <div class="kx-field">
+            <span class="kx-field__label">
+              <span>Modalidade de áudio</span>
+              <span class="kx-mono">{{ isLegendado() ? 'LEG' : 'DUB' }}</span>
+            </span>
+            <div class="kx-sdrawer__segment" role="group" aria-label="Modalidade de áudio">
+              <button
+                type="button"
+                class="kx-seg-btn kx-mono"
+                [class.is-selected]="isLegendado()"
+                [attr.aria-pressed]="isLegendado()"
+                (click)="setAudioMode(true)"
+              >
+                LEGENDADO (LEG)
+              </button>
+              <button
+                type="button"
+                class="kx-seg-btn kx-mono"
+                [class.is-selected]="!isLegendado()"
+                [attr.aria-pressed]="!isLegendado()"
+                (click)="setAudioMode(false)"
+              >
+                DUBLADO (DUB)
+              </button>
+            </div>
+          </div>
+
+          <!-- Availability Toggle -->
+          <div class="kx-field">
+            <span class="kx-field__label">
+              <span>Status inicial na bilheteria</span>
+            </span>
+            <button
+              type="button"
+              class="kx-avail-toggle kx-mono"
+              [class.is-active]="disponibilidade()"
+              [attr.aria-pressed]="disponibilidade()"
+              (click)="toggleDisponibilidade()"
+            >
+              <span class="kx-avail-toggle__dot" aria-hidden="true"></span>
+              <span>
+                {{
+                  disponibilidade()
+                    ? 'DISPONÍVEL PARA VENDA'
+                    : 'INDISPONÍVEL (OCULTA NA BILHETERIA)'
+                }}
+              </span>
+            </button>
+          </div>
+
+          <!-- Selected Room Operational Summary -->
+          @if (selectedSala(); as sala) {
+            <div class="kx-sdrawer__summary kx-halftone-subtle kx-mono">
+              <span>
+                SALA {{ formatSalaNumero(sala.numero) }} · {{ formatSalaTech(sala) }} ·
+                {{ sala.precoDoIngresso | currency:'BRL':'symbol':'1.2-2' }}
+              </span>
+              <small>
+                Ao cadastrar, a API instancia automaticamente {{ sala.qtdAssentos }} assentos livres
+                para o mapa de ocupação desta sessão.
+              </small>
+            </div>
+          }
+
+          @if (apiError(); as err) {
+            <div class="kx-alert kx-alert--danger" role="alert">
+              <p class="kx-alert__title">{{ err.title }}</p>
+              <p class="kx-alert__detail">{{ err.detail }}</p>
+            </div>
+          }
+
+          <div class="kx-sdrawer__actions">
+            <button
+              type="button"
+              class="kx-btn kx-btn-ghost"
+              [disabled]="isSubmitting()"
+              (click)="onClose()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="kx-btn kx-btn-primary"
+              [disabled]="isSubmitting() || availableFilmes().length === 0 || sortedSalas().length === 0"
+              [attr.aria-busy]="isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                <span>SALVANDO...</span>
+              } @else {
+                <span>CADASTRAR SESSÃO</span>
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </aside>
+}

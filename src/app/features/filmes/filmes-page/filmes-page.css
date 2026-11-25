@@ -43,6 +43,16 @@
   margin-top: 1.25rem;
 }
 
+.kx-filmes-ledger {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  .kx-filmes-ledger {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kx-filmes-page .kx-search {
   border-style: solid;
 }

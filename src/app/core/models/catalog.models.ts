@@ -57,6 +57,15 @@ export interface AssentoResponse {
   readonly numero: number;
 }
 
+export interface SessaoRequest {
+  readonly filmeId: number;
+  readonly salaId: number;
+  readonly disponibilidade: boolean;
+  readonly data: string;
+  readonly horarioInicio: string;
+  readonly isLegendado: boolean;
+}
+
 export interface SessaoAssentoResponse {
   readonly id: number;
   readonly assento: AssentoResponse;

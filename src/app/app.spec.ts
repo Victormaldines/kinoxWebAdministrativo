@@ -140,6 +140,8 @@ describe('Kinox Admin App', () => {
     expect(compiled.querySelector('h1')?.textContent).toContain('Filmes');
     expect(compiled.textContent).toContain('V de Vingança');
     expect(compiled.textContent).toContain('James McTeigue');
+    expect(compiled.textContent).toContain('02:00');
+    expect(compiled.textContent).not.toContain('DURAÇÃO MÉDIA');
   });
 
   it('should render SalasPage and populate rooms from GET /salas', async () => {
@@ -235,5 +237,99 @@ describe('Kinox Admin App', () => {
     expect(compiled.querySelector('[role="dialog"]')).toBeTruthy();
     expect(compiled.querySelectorAll('.kx-seat').length).toBe(2);
     expect(compiled.querySelectorAll('.kx-seat.is-occupied').length).toBe(1);
+  });
+
+  it('should allow authenticated admins to open the new session drawer and create a session on SessoesPage', async () => {
+    const auth = TestBed.inject(AuthService);
+    const loginPromise = auth.login({ login: 'admin', senha: 'secret' });
+    httpMock.expectOne(`${apiBase}/auth/login`).flush({
+      token: 'jwt-admin',
+      userId: 1,
+      subject: 'admin',
+      role: 'ADMIN',
+    });
+    await loginPromise;
+
+    const fixture = TestBed.createComponent(SessoesPage);
+    fixture.detectChanges();
+
+    httpMock.expectOne(`${apiBase}/sessoes`).flush([]);
+    await Promise.resolve();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const createButton = compiled.querySelector('.kx-sessoes-header__actions .kx-btn-primary') as HTMLButtonElement;
+    expect(createButton).toBeTruthy();
+    expect(createButton.textContent).toContain('Nova sessão');
+
+    createButton.click();
+    fixture.detectChanges();
+
+    const film = {
+      id: 1,
+      nome: 'Interestelar',
+      diretor: 'Christopher Nolan',
+      duracao: 169,
+      classificacaoIndicativa: 10,
+      sinopse: 'Sinopse.',
+      imagemUrl: '',
+      generos: [],
+    };
+    const sala = {
+      id: 2,
+      numero: 1,
+      precoDoIngresso: 45,
+      qtdAssentos: 40,
+      is3d: false,
+      isImax: true,
+      isDisponivel: true,
+    };
+
+    httpMock.expectOne(`${apiBase}/filmes`).flush([film]);
+    httpMock.expectOne(`${apiBase}/salas`).flush([sala]);
+    await Promise.resolve();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const dateInput = compiled.querySelector('#kx-sessao-data') as HTMLInputElement;
+    dateInput.value = '2099-12-31';
+    dateInput.dispatchEvent(new Event('input'));
+    const timeInput = compiled.querySelector('#kx-sessao-horario') as HTMLInputElement;
+    timeInput.value = '21:15';
+    timeInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const formEl = compiled.querySelector('.kx-sdrawer__form') as HTMLFormElement;
+    formEl.dispatchEvent(new Event('submit'));
+
+    const postReq = httpMock.expectOne(`${apiBase}/sessoes`);
+    expect(postReq.request.method).toBe('POST');
+    expect(postReq.request.body).toEqual({
+      filmeId: 1,
+      salaId: 2,
+      disponibilidade: true,
+      data: '2099-12-31',
+      horarioInicio: '21:15:00',
+      isLegendado: true,
+    });
+
+    postReq.flush({
+      id: 99,
+      disponibilidade: true,
+      data: '2099-12-31',
+      horarioInicio: '21:15:00',
+      isLegendado: true,
+      filme: film,
+      sala,
+      sessaoAssentos: [],
+    });
+
+    await Promise.resolve();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(compiled.textContent).toContain('Interestelar');
+    expect(compiled.textContent).toContain('Grade atualizada');
   });
 });

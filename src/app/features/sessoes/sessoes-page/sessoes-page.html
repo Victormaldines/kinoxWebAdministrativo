@@ -14,6 +14,11 @@
       </div>
 
       <div class="kx-sessoes-header__actions">
+        @if (auth.isAuthenticated()) {
+          <button type="button" class="kx-btn kx-btn-primary" (click)="openCreateDrawer()">
+            + Nova sessão
+          </button>
+        }
         <button
           type="button"
           class="kx-btn kx-btn-ghost"
@@ -51,6 +56,13 @@
     </div>
 
     <div class="kx-ruler-ticks" aria-hidden="true"></div>
+
+    @if (feedbackMessage(); as msg) {
+      <div class="kx-alert kx-alert--ok kx-sessoes-banner" role="status">
+        <p class="kx-alert__title">Grade atualizada</p>
+        <p class="kx-alert__detail">{{ msg }}</p>
+      </div>
+    }
 
     <!-- Search & Filter Toolbar -->
     <div class="kx-toolbar">
@@ -130,6 +142,10 @@
             <button type="button" class="kx-btn kx-btn-ghost" (click)="clearFilters()">
               Limpar filtros
             </button>
+          } @else if (auth.isAuthenticated()) {
+            <button type="button" class="kx-btn kx-btn-primary" (click)="openCreateDrawer()">
+              + Cadastrar primeira sessão
+            </button>
           }
         </div>
       } @else {
@@ -197,3 +213,16 @@
   [sessao]="selectedSessao()"
   (closeModal)="closeSeatMap()"
 />
+
+@if (auth.isAuthenticated()) {
+  <app-sessao-form-drawer
+    [isOpen]="isCreateDrawerOpen()"
+    [availableFilmes]="availableFilmes()"
+    [availableSalas]="availableSalas()"
+    [isLoadingOptions]="isLoadingDrawerOptions()"
+    [optionsError]="drawerOptionsError()"
+    (closeDrawer)="closeCreateDrawer()"
+    (saved)="onSessaoSaved($event)"
+    (retryOptions)="loadDrawerOptions()"
+  />
+}

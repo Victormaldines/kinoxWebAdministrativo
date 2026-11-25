@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'Bodoni Moda';
+        font-style: normal;
+        font-weight: 500;
+        src: url('data:font/woff2;base64,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') format('woff2');
+      }
+    </style>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#050504" />
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="#c19a6b" stroke-opacity="0.48" stroke-width="1.5" />
+  <text
+    x="32"
+    y="47"
+    text-anchor="middle"
+    font-family="'Bodoni Moda', Georgia, 'Times New Roman', serif"
+    font-size="44"
+    font-weight="500"
+    fill="#ffffff"
+  >K</text>
+</svg>

@@ -3,6 +3,9 @@
     "target": "https://kinoxapi.onrender.com",
     "secure": true,
     "changeOrigin": true,
+    "headers": {
+      "Origin": "https://kinoxapi.onrender.com"
+    },
     "pathRewrite": {
       "^/api": ""
     }

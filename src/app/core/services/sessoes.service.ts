@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { API_BASE_URL, buildApiUrl } from '../config/api.config';
-import { SessaoResponse } from '../models/catalog.models';
+import { SessaoRequest, SessaoResponse } from '../models/catalog.models';
 
 export function parseSessaoDateTime(data: string, horarioInicio: string): Date | null {
   if (!data || !horarioInicio) return null;
@@ -39,5 +39,10 @@ export class SessoesService {
   getById(id: number): Promise<SessaoResponse> {
     const url = buildApiUrl(this.apiBaseUrl, `/sessoes/${id}`);
     return firstValueFrom(this.http.get<SessaoResponse>(url));
+  }
+
+  create(payload: SessaoRequest): Promise<SessaoResponse> {
+    const url = buildApiUrl(this.apiBaseUrl, '/sessoes');
+    return firstValueFrom(this.http.post<SessaoResponse>(url, payload));
   }
 }

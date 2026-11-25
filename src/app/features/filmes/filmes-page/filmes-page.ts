@@ -37,13 +37,6 @@ export class FilmesPage implements OnInit {
   protected readonly deletingId = signal<number | null>(null);
   protected readonly brokenPosters = signal<ReadonlySet<number>>(new Set());
 
-  protected readonly averageDuration = computed(() => {
-    const list = this.filmes();
-    if (list.length === 0) return 0;
-    const sum = list.reduce((acc, film) => acc + (film.duracao || 0), 0);
-    return Math.round(sum / list.length);
-  });
-
   protected readonly filteredFilmes = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
     const genreId = this.selectedGenreId();
@@ -173,6 +166,13 @@ export class FilmesPage implements OnInit {
       next.add(filmId);
       return next;
     });
+  }
+
+  protected formatDuration(minutes: number): string {
+    const safe = Math.max(0, Math.floor(minutes || 0));
+    const hours = Math.floor(safe / 60);
+    const mins = safe % 60;
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
   }
 
   protected formatAgeRating(rating: number): string {
