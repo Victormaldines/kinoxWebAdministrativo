@@ -1,0 +1,393 @@
+.kx-hero {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 660px;
+  max-height: 1080px;
+  background-color: var(--kx-void);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 1fr auto;
+}
+
+/* Stage 1: Opening Centered Kinox Logo on Pure Black */
+.kx-intro-logo {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  background-color: var(--kx-void);
+  opacity: 1;
+  transition: opacity 520ms var(--kx-ease-film), visibility 520ms linear;
+}
+
+.kx-intro-logo__word {
+  font-family: var(--kx-font-logo);
+  font-optical-sizing: auto;
+  font-size: clamp(3.4rem, 7vw, 5.8rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--kx-white);
+  animation: kxLogoReveal 720ms var(--kx-ease-out) both;
+  transition: transform 520ms var(--kx-ease-film), opacity 420ms var(--kx-ease-out);
+}
+
+.kx-intro-logo.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.kx-intro-logo.is-hidden .kx-intro-logo__word {
+  transform: scale(0.78);
+  opacity: 0;
+}
+
+@keyframes kxLogoReveal {
+  from {
+    opacity: 0;
+    letter-spacing: 0.1em;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: -0.02em;
+    transform: scale(1);
+  }
+}
+
+.kx-hero__halftone,
+.kx-hero__crosshair-h,
+.kx-hero__crosshair-v,
+.kx-hero__sprockets {
+  pointer-events: none;
+  transition: opacity 640ms var(--kx-ease-out);
+}
+
+.kx-hero[data-stage='logo'] .kx-hero__halftone,
+.kx-hero[data-stage='logo'] .kx-hero__crosshair-h,
+.kx-hero[data-stage='logo'] .kx-hero__crosshair-v,
+.kx-hero[data-stage='logo'] .kx-hero__sprockets {
+  opacity: 0;
+}
+
+.kx-hero__halftone {
+  position: absolute;
+  inset: 0;
+  opacity: 0.7;
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, rgba(0, 0, 0, 0.35) 48%, transparent 76%);
+}
+
+.kx-hero__crosshair-h,
+.kx-hero__crosshair-v {
+  position: absolute;
+  z-index: 1;
+}
+
+.kx-hero__crosshair-h {
+  top: 50%;
+  left: 36px;
+  right: 36px;
+  border-top: 1px dashed rgba(244, 239, 230, 0.08);
+}
+
+.kx-hero__crosshair-v {
+  left: 50%;
+  top: 76px;
+  bottom: 64px;
+  border-left: 1px dashed rgba(244, 239, 230, 0.08);
+}
+
+.kx-hero__sprockets {
+  position: absolute;
+  top: 84px;
+  bottom: 72px;
+  width: 14px;
+  z-index: 2;
+  opacity: 0.45;
+  background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 12px,
+      rgba(193, 154, 107, 0.4) 12px 19px,
+      transparent 19px 32px
+    )
+    center / 6px 32px repeat-y;
+}
+
+.kx-hero__sprockets--left {
+  left: 12px;
+  border-right: 1px dashed rgba(244, 239, 230, 0.1);
+}
+
+.kx-hero__sprockets--right {
+  right: 12px;
+  border-left: 1px dashed rgba(244, 239, 230, 0.1);
+}
+
+.kx-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  isolation: isolate;
+}
+
+/* Stage 2: Central Cinema Eye Reveal */
+.kx-aperture {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  color: var(--kx-bone);
+  pointer-events: none;
+  opacity: 1;
+  transition:
+    opacity 460ms var(--kx-ease-out),
+    color 340ms var(--kx-ease-out),
+    transform 560ms var(--kx-ease-film);
+}
+
+.kx-hero[data-stage='logo'] .kx-aperture {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.55);
+}
+
+.kx-hero[data-stage='eye'] .kx-aperture {
+  color: var(--kx-sepia-bright);
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.kx-aperture.is-active {
+  color: var(--kx-sepia-bright);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.kx-aperture__svg {
+  display: block;
+  transform-origin: center;
+  transition: transform 130ms var(--kx-ease-film);
+}
+
+.kx-aperture.is-solo {
+  will-change: transform;
+  transition: opacity 460ms var(--kx-ease-out), color 340ms var(--kx-ease-out);
+}
+
+.kx-aperture.is-solo .kx-aperture__svg {
+  width: 68px;
+  height: 39px;
+}
+
+.kx-aperture.is-blinking .kx-aperture__svg {
+  transform: scaleY(0.06);
+}
+
+/* Stage 3: Film Frames Emerge Staggered into Ellipsoid */
+.kx-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  margin: 0;
+  border: 1px solid rgba(244, 239, 230, 0.12);
+  background: var(--kx-carbon);
+  overflow: hidden;
+  cursor: pointer;
+  will-change: transform, filter, opacity;
+  transition:
+    filter 420ms var(--kx-ease-film),
+    opacity 540ms var(--kx-ease-film) var(--kx-enter-delay, 0ms),
+    border-color 280ms var(--kx-ease-out),
+    box-shadow 340ms var(--kx-ease-out);
+}
+
+.kx-hero[data-stage='logo'] .kx-frame,
+.kx-hero[data-stage='eye'] .kx-frame {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kx-hero[data-stage='films'] .kx-frame {
+  opacity: 1;
+  pointer-events: none;
+}
+
+.kx-hero[data-stage='ready'] .kx-frame {
+  transition-delay: 0ms;
+}
+
+.kx-frame__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.kx-frame__tag {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.34rem 0.52rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--kx-bone);
+  background: linear-gradient(to bottom, rgba(5, 5, 4, 0.86), transparent);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms var(--kx-ease-out), transform 180ms var(--kx-ease-out);
+}
+
+.kx-stage.is-isolating .kx-frame:not(.is-focused) {
+  filter: grayscale(100%) contrast(1.12) brightness(0.42);
+  opacity: 0.78;
+  border-color: rgba(244, 239, 230, 0.08);
+}
+
+.kx-frame.is-focused {
+  filter: saturate(1.14) contrast(1.05) brightness(1.04);
+  opacity: 1;
+  border-color: var(--kx-sepia);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(224, 195, 156, 0.45);
+}
+
+.kx-frame.is-focused .kx-frame__tag {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stage 4: Bottom Telemetry Bar */
+.kx-hero__footer {
+  position: relative;
+  z-index: 80;
+  width: 100%;
+  max-width: var(--kx-max-width);
+  margin-inline: auto;
+  padding: 1rem var(--kx-gutter) 1.35rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px dashed rgba(244, 239, 230, 0.14);
+  transition: opacity 420ms var(--kx-ease-out), transform 420ms var(--kx-ease-out);
+}
+
+.kx-hero:not([data-stage='ready']) .kx-hero__footer {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.kx-hero__meta-left {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--kx-muted);
+}
+
+.kx-hero__index {
+  color: var(--kx-sepia-bright);
+  font-weight: 600;
+}
+
+.kx-hero__sepia-dot {
+  width: 5px;
+  height: 5px;
+  background: var(--kx-sepia);
+}
+
+.kx-hero__meta-center {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.kx-hero__constellation-label {
+  color: var(--kx-paper);
+}
+
+.kx-hero__film-name {
+  color: var(--kx-white);
+  font-weight: 600;
+}
+
+.kx-hero__film-sep {
+  color: var(--kx-sepia);
+}
+
+.kx-hero__film-extra {
+  color: var(--kx-sepia-bright);
+}
+
+.kx-hero__meta-right {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.kx-orbit-toggle,
+.kx-scroll-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 36px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+  transition: all 180ms var(--kx-ease-out);
+}
+
+.kx-orbit-toggle {
+  color: var(--kx-muted);
+  border: 1px dashed var(--kx-rule);
+}
+
+.kx-orbit-toggle:hover {
+  color: var(--kx-bone);
+  border-color: var(--kx-rule-strong);
+}
+
+.kx-scroll-cue {
+  color: var(--kx-sepia-bright);
+  border: 1px solid var(--kx-sepia-border);
+  background: var(--kx-sepia-wash);
+}
+
+.kx-scroll-cue:hover {
+  background: var(--kx-sepia);
+  color: var(--kx-void);
+}
+
+@media (max-width: 960px) {
+  .kx-hero__footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.65rem;
+  }
+
+  .kx-hero__meta-left,
+  .kx-hero__meta-right {
+    justify-self: center;
+  }
+
+  .kx-hero__sprockets {
+    display: none;
+  }
+}

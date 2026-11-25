@@ -1,0 +1,164 @@
+@if (isOpen()) {
+  <div class="kx-sdrawer-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+  <aside
+    class="kx-sdrawer"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="isEditMode() ? 'Editar sala' : 'Cadastrar nova sala'"
+  >
+    <div class="kx-sdrawer__head">
+      <span class="kx-mono kx-sdrawer__route">
+        {{ isEditMode() ? 'PUT /salas/' + editingSala()!.id : 'POST /salas' }}
+      </span>
+      <button
+        type="button"
+        class="kx-sdrawer__close kx-mono"
+        [disabled]="isSubmitting()"
+        (click)="onClose()"
+      >
+        ESC · FECHAR
+      </button>
+    </div>
+
+    <div class="kx-sdrawer__body">
+      <h2 class="kx-display kx-sdrawer__title">
+        {{ isEditMode() ? 'Editar sala' : 'Nova sala' }}
+      </h2>
+
+      <form class="kx-sdrawer__form" novalidate (submit)="onSubmit($event)">
+        <div class="kx-sdrawer__row">
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-sala-numero">
+              <span>Número da sala</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="fieldError('numero') !== null">
+              <input
+                id="kx-sala-numero"
+                type="number"
+                class="kx-field__input kx-field__input--mono"
+                [formField]="salaForm.numero"
+              />
+            </div>
+            @if (fieldError('numero'); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-sala-preco">
+              <span>Preço do ingresso (R$)</span>
+            </label>
+            <div
+              class="kx-field__control"
+              [class.is-invalid]="fieldError('precoDoIngresso') !== null"
+            >
+              <input
+                id="kx-sala-preco"
+                type="number"
+                step="0.5"
+                class="kx-field__input kx-field__input--mono"
+                [formField]="salaForm.precoDoIngresso"
+              />
+            </div>
+            @if (fieldError('precoDoIngresso'); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+        </div>
+
+        <div class="kx-field">
+          <label class="kx-field__label" for="kx-sala-assentos">
+            <span>Quantidade de assentos</span>
+          </label>
+          <div class="kx-field__control" [class.is-invalid]="fieldError('qtdAssentos') !== null">
+            <input
+              id="kx-sala-assentos"
+              type="number"
+              class="kx-field__input kx-field__input--mono"
+              [formField]="salaForm.qtdAssentos"
+            />
+          </div>
+          @if (fieldError('qtdAssentos'); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          } @else if (!isEditMode()) {
+            <p class="kx-sdrawer__hint kx-mono">
+              Os assentos físicos (1..N) são gerados automaticamente pela API ao criar a sala.
+            </p>
+          }
+        </div>
+
+        <div class="kx-field">
+          <span class="kx-field__label">
+            <span>Recursos e disponibilidade</span>
+          </span>
+
+          <div class="kx-flag-grid">
+            <button
+              type="button"
+              class="kx-flag-toggle kx-mono"
+              [class.is-active]="isDisponivel()"
+              [attr.aria-pressed]="isDisponivel()"
+              (click)="toggleFlag('isDisponivel')"
+            >
+              <span>DISPONIBILIDADE</span>
+              <strong>{{ isDisponivel() ? 'ATIVA' : 'MANUTENÇÃO' }}</strong>
+            </button>
+
+            <button
+              type="button"
+              class="kx-flag-toggle kx-mono"
+              [class.is-active]="isImax()"
+              [attr.aria-pressed]="isImax()"
+              (click)="toggleFlag('isImax')"
+            >
+              <span>PROJEÇÃO IMAX</span>
+              <strong>{{ isImax() ? 'SIM' : 'NÃO' }}</strong>
+            </button>
+
+            <button
+              type="button"
+              class="kx-flag-toggle kx-mono"
+              [class.is-active]="is3d()"
+              [attr.aria-pressed]="is3d()"
+              (click)="toggleFlag('is3d')"
+            >
+              <span>PROJEÇÃO 3D</span>
+              <strong>{{ is3d() ? 'SIM' : 'NÃO' }}</strong>
+            </button>
+          </div>
+        </div>
+
+        @if (apiError(); as err) {
+          <div class="kx-alert kx-alert--danger" role="alert">
+            <p class="kx-alert__title">{{ err.title }}</p>
+            <p class="kx-alert__detail">{{ err.detail }}</p>
+          </div>
+        }
+
+        <div class="kx-sdrawer__actions">
+          <button
+            type="button"
+            class="kx-btn kx-btn-ghost"
+            [disabled]="isSubmitting()"
+            (click)="onClose()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="kx-btn kx-btn-primary"
+            [disabled]="isSubmitting()"
+            [attr.aria-busy]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <span>SALVANDO...</span>
+            } @else {
+              <span>{{ isEditMode() ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR SALA' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </aside>
+}

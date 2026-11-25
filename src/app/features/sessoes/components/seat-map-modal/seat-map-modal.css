@@ -1,0 +1,327 @@
+.kx-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(5, 5, 4, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.kx-modal-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  pointer-events: none;
+}
+
+.kx-modal {
+  pointer-events: auto;
+  width: min(760px, 100%);
+  max-height: min(90dvh, 840px);
+  background: var(--kx-obsidian);
+  border: 1px dashed var(--kx-sepia-border);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.kx-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1.4rem;
+  background: var(--kx-carbon);
+  border-bottom: 1px dashed var(--kx-rule-strong);
+}
+
+.kx-modal__head-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.kx-readonly-tag {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--kx-muted);
+}
+
+.kx-modal__close {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  color: var(--kx-bone);
+  background: transparent;
+  border: 1px solid var(--kx-rule-strong);
+  cursor: pointer;
+}
+
+.kx-modal__close:hover {
+  border-color: var(--kx-sepia);
+  color: var(--kx-sepia-bright);
+}
+
+.kx-modal__body {
+  padding: 1.5rem 1.4rem 1.4rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.kx-modal__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kx-modal__title {
+  margin: 0;
+  font-size: 1.85rem;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--kx-white);
+}
+
+.kx-modal__sub {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--kx-sepia-bright);
+}
+
+.kx-map-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px dashed var(--kx-rule-strong);
+  border-bottom: 1px dashed var(--kx-rule-strong);
+}
+
+.kx-map-stats__cell {
+  padding: 0.75rem 0.9rem;
+  border-right: 1px dashed var(--kx-rule);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kx-map-stats__cell:first-child {
+  padding-left: 0;
+}
+
+.kx-map-stats__cell:last-child {
+  border-right: none;
+}
+
+.kx-map-stats__cell span {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--kx-muted);
+}
+
+.kx-map-stats__cell strong {
+  font-size: 0.95rem;
+  color: var(--kx-white);
+}
+
+.kx-map-stats__cell strong.is-free {
+  color: var(--kx-ok);
+}
+
+.kx-map-stats__cell strong.is-busy {
+  color: var(--kx-sepia-bright);
+}
+
+.kx-auditorium {
+  padding: 1.35rem 1.15rem 1.5rem;
+  border: 1px dashed var(--kx-rule-strong);
+  background-color: var(--kx-void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.kx-screen-bar {
+  width: min(460px, 92%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.kx-screen-bar__beam {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--kx-sepia-bright) 20%,
+    var(--kx-white) 50%,
+    var(--kx-sepia-bright) 80%,
+    transparent
+  );
+}
+
+.kx-screen-bar__label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--kx-muted);
+}
+
+.kx-auditorium__empty {
+  margin: 1rem 0;
+  font-size: 0.76rem;
+  color: var(--kx-muted);
+}
+
+.kx-seat-rows {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 0.75rem;
+  margin: -0.75rem 0;
+  overflow-x: auto;
+}
+
+.kx-seat-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 22px;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: fit-content;
+  margin-inline: auto;
+}
+
+.kx-seat-row__letter {
+  font-size: 0.66rem;
+  color: var(--kx-dim);
+  text-align: center;
+}
+
+.kx-seat-row__cells {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.kx-seat {
+  position: relative;
+  width: 38px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--kx-paper);
+  background-color: var(--kx-carbon);
+  border: 1px solid var(--kx-rule-strong);
+  border-radius: var(--kx-radius-xs);
+  user-select: none;
+  cursor: default;
+  transition:
+    background-color 340ms var(--kx-ease-film),
+    border-color 340ms var(--kx-ease-film),
+    color 340ms var(--kx-ease-film),
+    box-shadow 360ms var(--kx-ease-film),
+    transform 300ms var(--kx-ease-film);
+}
+
+.kx-seat:hover {
+  z-index: 2;
+  background-color: #2f2a23;
+  border-color: var(--kx-sepia-bright);
+  color: var(--kx-white);
+  box-shadow: 0 0 14px rgba(224, 195, 156, 0.36);
+  transform: translateY(-1px);
+  transition:
+    background-color 160ms var(--kx-ease-out),
+    border-color 160ms var(--kx-ease-out),
+    color 160ms var(--kx-ease-out),
+    box-shadow 180ms var(--kx-ease-out),
+    transform 160ms var(--kx-ease-out);
+}
+
+.kx-seat.is-occupied {
+  background-color: var(--kx-sepia);
+  border-color: var(--kx-sepia-bright);
+  color: var(--kx-void);
+  font-weight: 600;
+}
+
+.kx-seat.is-occupied:hover {
+  background-color: #ecd6b7;
+  border-color: var(--kx-white);
+  color: var(--kx-void);
+  box-shadow: 0 0 16px rgba(236, 214, 183, 0.5);
+  transform: translateY(-1px);
+}
+
+.kx-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--kx-rule);
+  font-size: 0.64rem;
+  letter-spacing: 0.12em;
+  color: var(--kx-muted);
+}
+
+.kx-map-legend__items {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.kx-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--kx-bone);
+}
+
+.kx-legend-swatch {
+  width: 14px;
+  height: 14px;
+  background: var(--kx-carbon);
+  border: 1px solid var(--kx-rule-strong);
+  border-radius: 2px;
+}
+
+.kx-legend-swatch.is-occupied {
+  background: var(--kx-sepia);
+  border-color: var(--kx-sepia-bright);
+}
+
+.kx-map-legend__hint {
+  color: var(--kx-dim);
+}
+
+@media (max-width: 600px) {
+  .kx-map-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .kx-map-stats__cell {
+    padding-left: 0;
+    border-right: none;
+    border-bottom: 1px dashed var(--kx-rule);
+  }
+
+  .kx-seat {
+    width: 30px;
+    height: 28px;
+    font-size: 0.62rem;
+  }
+}

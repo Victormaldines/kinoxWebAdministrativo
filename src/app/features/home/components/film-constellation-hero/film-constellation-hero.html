@@ -1,0 +1,141 @@
+<section
+  id="hero"
+  class="kx-hero"
+  [attr.data-stage]="introStage()"
+  aria-label="Constelação de filmes em cartaz"
+  (pointermove)="onStagePointerMove($event)"
+  (pointerleave)="onStagePointerLeave()"
+>
+  <!-- Opening Sequence Stage 1: Kinox Logo Alone on Pure Black -->
+  <div
+    class="kx-intro-logo"
+    [class.is-hidden]="introStage() !== 'logo'"
+    [attr.aria-hidden]="introStage() !== 'logo'"
+    (click)="skipIntroIfActive()"
+  >
+    <span class="kx-intro-logo__word">kīnox</span>
+  </div>
+
+  <!-- Archival 35mm Film-Strip Side Sprocket Rails -->
+  <div class="kx-hero__sprockets kx-hero__sprockets--left" aria-hidden="true"></div>
+  <div class="kx-hero__sprockets kx-hero__sprockets--right" aria-hidden="true"></div>
+
+  <!-- Subtle Halftone Aperture Backdrop -->
+  <div class="kx-hero__halftone kx-halftone-subtle" aria-hidden="true"></div>
+
+  <!-- Dashed Crosshair Calibration Guides -->
+  <div class="kx-hero__crosshair-h" aria-hidden="true"></div>
+  <div class="kx-hero__crosshair-v" aria-hidden="true"></div>
+
+  <!-- Orbital Constellation Stage -->
+  <div class="kx-stage" [class.is-isolating]="isIsolating()">
+    <!-- Opening Sequence Stage 2: Central Geometric Cinema Eye -->
+    <div
+      class="kx-aperture"
+      [class.is-active]="isIsolating()"
+      [class.is-solo]="!showConstellation()"
+      [class.is-blinking]="isEyeBlinking()"
+      [style.transform]="!showConstellation() && isInteractive() ? eyeTransform() : null"
+      aria-hidden="true"
+    >
+      <svg class="kx-aperture__svg" viewBox="0 0 64 36" width="52" height="30" fill="none">
+        <ellipse cx="32" cy="18" rx="28" ry="12" stroke="currentColor" stroke-width="1.25" />
+        <g [attr.transform]="!showConstellation() ? pupilTransform() : null">
+          <ellipse cx="32" cy="18" rx="16" ry="11" stroke="currentColor" stroke-width="1" opacity="0.72" />
+          <ellipse cx="32" cy="18" rx="8.5" ry="10.2" stroke="currentColor" stroke-width="0.9" opacity="0.48" />
+          <circle cx="32" cy="18" r="2.4" fill="currentColor" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Opening Sequence Stage 3: Film Frames Emerge into Ellipsoid (Authenticated Only) -->
+    @if (showConstellation()) {
+      @for (item of orbitFrames(); track item.film.id) {
+        <button
+          type="button"
+          class="kx-frame"
+          [class.is-focused]="item.isFocused"
+          [style.transform]="item.transform"
+          [style.width.px]="item.widthPx"
+          [style.height.px]="item.heightPx"
+          [style.z-index]="item.zIndex"
+          [style.--kx-enter-delay.ms]="item.entranceDelayMs"
+          [attr.tabindex]="isInteractive() ? 0 : -1"
+          [attr.aria-label]="item.film.title + ' — ' + item.film.director + ' (' + item.film.durationMinutes + ' min). Clique para inspecionar.'"
+          (mouseenter)="onFrameEnter(item.film.id)"
+          (mouseleave)="onFrameLeave(item.film.id)"
+          (focus)="onFrameEnter(item.film.id)"
+          (blur)="onFrameLeave(item.film.id)"
+          (click)="onFrameSelect(item.film)"
+        >
+          <img
+            class="kx-frame__img"
+            [ngSrc]="item.film.imagePath"
+            [alt]="item.film.imageAlt"
+            fill
+            priority
+          />
+          <span class="kx-frame__tag kx-mono" aria-hidden="true">
+            <span>{{ item.film.reelCode }}</span>
+            <span>{{ item.film.formatLabel }}</span>
+          </span>
+        </button>
+      }
+    }
+  </div>
+
+  <!-- Opening Sequence Stage 4: Bottom Live Telemetry Bar Unlocks -->
+  <div class="kx-hero__footer">
+    <div class="kx-hero__meta-left kx-mono">
+      @if (activeFilm(); as film) {
+        <span class="kx-hero__index">{{ film.reelCode }}</span>
+        <span class="kx-hero__submeta">{{ film.scheduledRoom }} · {{ film.nextSession }}</span>
+      } @else {
+        <span class="kx-hero__submeta">CABINE KINOX · 35MM</span>
+        @if (showConstellation()) {
+          <span class="kx-hero__sepia-dot" aria-hidden="true"></span>
+          <span class="kx-hero__submeta">{{ films().length }} EM CARTAZ</span>
+        }
+      }
+    </div>
+
+    <div class="kx-hero__meta-center kx-mono" aria-live="polite">
+      @if (activeFilm(); as film) {
+        <span class="kx-hero__film-name">{{ film.title }}</span>
+        <span class="kx-hero__film-sep" aria-hidden="true">/</span>
+        <span class="kx-hero__film-extra">
+          {{ film.director }} · {{ film.durationMinutes }} MIN · {{ film.ageRating }}
+        </span>
+      } @else if (showConstellation()) {
+        <span class="kx-hero__constellation-label">CONSTELAÇÃO EM CARTAZ</span>
+      } @else {
+        <span class="kx-hero__constellation-label">CABINE DE PROJEÇÃO</span>
+      }
+    </div>
+
+    <div class="kx-hero__meta-right">
+      @if (showConstellation()) {
+        <button
+          type="button"
+          class="kx-orbit-toggle kx-mono"
+          [attr.aria-pressed]="isPausedByUser()"
+          [attr.aria-label]="isPausedByUser() ? 'Retomar órbita dos filmes' : 'Pausar órbita dos filmes'"
+          (click)="togglePause()"
+        >
+          {{ isPausedByUser() ? 'RETOMAR' : 'PAUSAR' }}
+        </button>
+      }
+
+      <button
+        type="button"
+        class="kx-scroll-cue kx-mono"
+        (click)="onExploreClick()"
+      >
+        <span>PAINEL ADMIN</span>
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+          <path d="M8 3v10m0 0-3.5-3.5M8 13l3.5-3.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="square" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>

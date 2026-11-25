@@ -1,0 +1,140 @@
+@if (activeSessao(); as current) {
+  <div class="kx-modal-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+  <div class="kx-modal-wrap">
+    <section
+      class="kx-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="seat-map-title"
+    >
+      <header class="kx-modal__head">
+        <div class="kx-modal__head-meta kx-mono">
+          <span class="kx-route-chip">GET /sessoes/{{ current.id }}</span>
+          <span class="kx-readonly-tag">SOMENTE VISUALIZAÇÃO</span>
+        </div>
+
+        <button
+          type="button"
+          class="kx-modal__close kx-mono"
+          aria-label="Fechar mapa de ocupação"
+          (click)="onClose()"
+        >
+          ESC · FECHAR
+        </button>
+      </header>
+
+      <div class="kx-modal__body">
+        <div class="kx-modal__title-row">
+          <div>
+            <h2 id="seat-map-title" class="kx-display kx-modal__title">
+              {{ current.filme.nome }}
+            </h2>
+            <p class="kx-modal__sub kx-mono">
+              {{ formatDate(current.data) }} · {{ formatTime(current.horarioInicio) }} ·
+              {{ formatRoom(current) }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="kx-btn kx-btn-ghost kx-btn-sm"
+            [disabled]="isRefreshing()"
+            (click)="refreshSessao(current.id)"
+          >
+            {{ isRefreshing() ? 'ATUALIZANDO...' : 'ATUALIZAR MAPA' }}
+          </button>
+        </div>
+
+        <!-- Live Occupancy Summary Strip -->
+        <div class="kx-map-stats kx-mono">
+          <div class="kx-map-stats__cell">
+            <span>LIVRES</span>
+            <strong class="is-free">{{ freeSeats() }}</strong>
+          </div>
+          <div class="kx-map-stats__cell">
+            <span>OCUPADOS</span>
+            <strong class="is-busy">{{ occupiedSeats() }}</strong>
+          </div>
+          <div class="kx-map-stats__cell">
+            <span>LOTAÇÃO</span>
+            <strong>{{ occupancyPercent() }}% ({{ occupiedSeats() }}/{{ totalSeats() }})</strong>
+          </div>
+        </div>
+
+        @if (refreshError(); as err) {
+          <div class="kx-alert kx-alert--danger" role="alert">
+            <p class="kx-alert__title">{{ err.title }}</p>
+            <p class="kx-alert__detail">{{ err.detail }}</p>
+          </div>
+        }
+
+        <!-- Auditorium Projection Screen & Seat Matrix -->
+        <div class="kx-auditorium kx-halftone-subtle">
+          <div class="kx-screen-bar" aria-hidden="true">
+            <span class="kx-screen-bar__beam"></span>
+            <span class="kx-screen-bar__label kx-mono">TELA DE PROJEÇÃO</span>
+          </div>
+
+          @if (seatRows().length === 0) {
+            <p class="kx-auditorium__empty kx-mono">
+              Nenhum registro de assento retornado para esta sessão.
+            </p>
+          } @else {
+            <div class="kx-seat-rows" role="list" aria-label="Mapa de assentos da sessão">
+              @for (row of seatRows(); track row.rowLabel) {
+                <div class="kx-seat-row" role="listitem">
+                  <span class="kx-seat-row__letter kx-mono" aria-hidden="true">
+                    {{ row.rowLabel }}
+                  </span>
+
+                  <div class="kx-seat-row__cells">
+                    @for (seat of row.seats; track seat.id) {
+                      <div
+                        class="kx-seat kx-mono"
+                        [class.is-occupied]="seat.isOcupado"
+                        [attr.aria-label]="
+                          'Assento ' +
+                          formatNumero(seat.assento.numero) +
+                          ': ' +
+                          (seat.isOcupado ? 'Ocupado' : 'Livre')
+                        "
+                        [title]="
+                          'Assento ' +
+                          formatNumero(seat.assento.numero) +
+                          ' — ' +
+                          (seat.isOcupado ? 'Ocupado' : 'Livre')
+                        "
+                      >
+                        {{ formatNumero(seat.assento.numero) }}
+                      </div>
+                    }
+                  </div>
+
+                  <span class="kx-seat-row__letter kx-mono" aria-hidden="true">
+                    {{ row.rowLabel }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Legend -->
+        <footer class="kx-map-legend kx-mono">
+          <div class="kx-map-legend__items">
+            <span class="kx-legend-item">
+              <span class="kx-legend-swatch" aria-hidden="true"></span>
+              <span>ASSENTO LIVRE</span>
+            </span>
+            <span class="kx-legend-item">
+              <span class="kx-legend-swatch is-occupied" aria-hidden="true"></span>
+              <span>ASSENTO OCUPADO</span>
+            </span>
+          </div>
+          <span class="kx-map-legend__hint">MAPA SOMENTE LEITURA · SESSÃO #{{ current.id }}</span>
+        </footer>
+      </div>
+    </section>
+  </div>
+}

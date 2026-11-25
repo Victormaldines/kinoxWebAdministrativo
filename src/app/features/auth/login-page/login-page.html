@@ -1,0 +1,183 @@
+<a class="kx-skip-link" href="#login-form">Ir para o formulário de acesso</a>
+
+<div class="kx-film-grain" aria-hidden="true"></div>
+
+<div class="kx-auth-shell">
+  <div class="kx-film-strip" aria-hidden="true"></div>
+
+  <main class="kx-auth-main">
+    <!-- Left Column: Archival Cinema Identity & API Telemetry -->
+    <section class="kx-auth-brand-pane" aria-label="Identidade da cabine Kinox">
+      <div class="kx-auth-brand-pane__top">
+        <a class="kx-back-link kx-mono" routerLink="/">
+          <span aria-hidden="true">←</span>
+          <span>VOLTAR À HOME</span>
+        </a>
+        <span class="kx-route-chip kx-mono">POST /auth/login</span>
+      </div>
+
+      <div class="kx-auth-brand-pane__center">
+        <div class="kx-auth-logo">
+          <span class="kx-auth-logo__word">kīnox</span>
+          <span class="kx-auth-logo__tag kx-mono">CABINE ADMIN</span>
+        </div>
+
+        <p class="kx-auth-statement">
+          Console administrativo para programação de filmes, grade de sessões, salas, assentos e
+          auditoria de bilheteria sob autenticação JWT.
+        </p>
+      </div>
+
+      <div class="kx-auth-telemetry kx-halftone-subtle kx-mono">
+        <div>
+          <span>SERVIDOR</span>
+          <strong>{{ apiHost }}</strong>
+        </div>
+        <div>
+          <span>ESQUEMA</span>
+          <strong>BEARER JWT</strong>
+        </div>
+        <div>
+          <span>ESCOPO</span>
+          <strong>ROLE ADMIN</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Authentication Console (Angular 22 Signal Forms) -->
+    <section class="kx-auth-form-pane" aria-labelledby="login-heading">
+      <div class="kx-auth-card">
+        <header class="kx-auth-card__header">
+          <h1 id="login-heading" class="kx-display kx-auth-card__title">Acesso Administrativo</h1>
+          <p class="kx-auth-card__subtitle">
+            Entre com seu login e senha de operador para obter o token JWT e operar os recursos
+            protegidos da Kinox Cinema API.
+          </p>
+        </header>
+
+        @if (sessionReason() === 'expirada') {
+          <div class="kx-alert" role="status">
+            <p class="kx-alert__title">Sessão expirada</p>
+            <p class="kx-alert__detail">
+              Seu token JWT expirou ou foi invalidado pela API. Autentique-se novamente para
+              continuar.
+            </p>
+          </div>
+        } @else if (redirectTarget() !== '/') {
+          <div class="kx-alert" role="status">
+            <p class="kx-alert__title">Autenticação necessária</p>
+            <p class="kx-alert__detail">
+              Faça login com uma conta <span class="kx-mono">ADMIN</span> para acessar
+              <span class="kx-mono">{{ redirectTarget() }}</span>.
+            </p>
+          </div>
+        }
+
+        <form
+          id="login-form"
+          class="kx-auth-form"
+          novalidate
+          (submit)="onSubmit($event)"
+        >
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-login-input">
+              <span>Login de administrador</span>
+              <span class="kx-field__req">OBRIGATÓRIO</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="loginError() !== null">
+              <input
+                id="kx-login-input"
+                type="text"
+                class="kx-field__input kx-field__input--mono"
+                autocomplete="username"
+                placeholder="ex.: admin"
+                [formField]="loginForm.login"
+                [attr.aria-invalid]="loginError() !== null"
+                [attr.aria-describedby]="loginError() ? 'kx-login-error' : null"
+              />
+            </div>
+            @if (loginError(); as err) {
+              <p id="kx-login-error" class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-password-input">
+              <span>Senha</span>
+              <span class="kx-field__req">OBRIGATÓRIO</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="passwordError() !== null">
+              <input
+                id="kx-password-input"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="kx-field__input kx-field__input--mono"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                [formField]="loginForm.senha"
+                [attr.aria-invalid]="passwordError() !== null"
+                [attr.aria-describedby]="passwordError() ? 'kx-password-error' : null"
+              />
+              <button
+                type="button"
+                class="kx-pass-toggle kx-mono"
+                [attr.aria-pressed]="showPassword()"
+                [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+                (click)="togglePasswordVisibility()"
+              >
+                {{ showPassword() ? 'OCULTAR' : 'MOSTRAR' }}
+              </button>
+            </div>
+            @if (passwordError(); as err) {
+              <p id="kx-password-error" class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          @if (apiError(); as err) {
+            <div class="kx-alert kx-alert--danger" role="alert">
+              <p class="kx-alert__title">{{ err.title }}</p>
+              <p class="kx-alert__detail">{{ err.detail }}</p>
+            </div>
+          }
+
+          @if (isSlowRequest()) {
+            <div class="kx-alert" role="status">
+              <p class="kx-alert__title">Aguardando resposta do Render</p>
+              <p class="kx-alert__detail">
+                A instância da API Kinox pode levar alguns segundos para despertar na primeira
+                requisição. Mantendo conexão ativa…
+              </p>
+            </div>
+          }
+
+          <button
+            type="submit"
+            class="kx-btn kx-btn-primary kx-auth-submit"
+            [disabled]="isSubmitting()"
+            [attr.aria-busy]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <span>AUTENTICANDO NA API...</span>
+            } @else {
+              <span>ENTRAR NA CABINE</span>
+              <span aria-hidden="true">→</span>
+            }
+          </button>
+        </form>
+
+        <footer class="kx-auth-card__footer kx-mono">
+          <span>TOKEN ARMAZENADO LOCALMENTE · AUTO-INJEÇÃO BEARER</span>
+          <a
+            class="kx-auth-swagger"
+            href="https://kinoxapi.onrender.com/swagger-ui/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            SWAGGER ↗
+          </a>
+        </footer>
+      </div>
+    </section>
+  </main>
+
+  <div class="kx-film-strip" aria-hidden="true"></div>
+</div>

@@ -1,0 +1,56 @@
+<header
+  class="kx-topbar"
+  [class.is-scrolled]="isScrolled()"
+  [class.is-hidden]="!isVisible()"
+>
+  <div class="kx-topbar__inner">
+    <a
+      class="kx-brand"
+      href="#hero"
+      aria-label="Kinox — Voltar ao topo"
+      (click)="onNavigate('hero', $event)"
+    >
+      <span class="kx-brand__word">kīnox</span>
+      <span class="kx-brand__meta kx-mono">ADMIN</span>
+    </a>
+
+    <nav class="kx-nav-center" aria-label="Atalho principal">
+      <a
+        class="kx-nav-link kx-mono"
+        href="#painel"
+        (click)="onNavigate('painel', $event)"
+      >
+        PAINEL
+      </a>
+    </nav>
+
+    <nav class="kx-nav-right" aria-label="Módulos administrativos e sessão">
+      <a class="kx-nav-link kx-mono" routerLink="/filmes">
+        FILMES
+      </a>
+      <a class="kx-nav-link kx-mono" routerLink="/generos">
+        GÊNEROS
+      </a>
+      <a class="kx-nav-link kx-mono" routerLink="/salas">
+        SALAS
+      </a>
+      <a class="kx-nav-link kx-mono" routerLink="/sessoes">
+        SESSÕES
+      </a>
+
+      <span class="kx-nav-divider" aria-hidden="true"></span>
+
+      @if (auth.isAuthenticated()) {
+        <div class="kx-session-pill kx-mono">
+          <span class="kx-session-dot" aria-hidden="true"></span>
+          <span class="kx-session-user">{{ auth.operatorLabel() }}</span>
+          <button type="button" class="kx-session-exit" (click)="onLogout()">
+            SAIR
+          </button>
+        </div>
+      } @else {
+        <a class="kx-auth-cta kx-mono" routerLink="/login">ENTRAR</a>
+      }
+    </nav>
+  </div>
+</header>

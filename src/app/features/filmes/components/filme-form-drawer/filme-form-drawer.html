@@ -1,0 +1,218 @@
+@if (isOpen()) {
+  <div class="kx-fdrawer-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+  <aside
+    class="kx-fdrawer"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="isEditMode() ? 'Editar filme' : 'Cadastrar novo filme'"
+  >
+    <div class="kx-fdrawer__head">
+      <span class="kx-mono kx-fdrawer__route">
+        {{ isEditMode() ? 'PUT /filmes/' + editingFilm()!.id : 'POST /filmes' }}
+      </span>
+      <button
+        type="button"
+        class="kx-fdrawer__close kx-mono"
+        [disabled]="isSubmitting()"
+        (click)="onClose()"
+      >
+        ESC · FECHAR
+      </button>
+    </div>
+
+    <div class="kx-fdrawer__body">
+      <h2 class="kx-display kx-fdrawer__title">
+        {{ isEditMode() ? 'Editar filme' : 'Novo filme' }}
+      </h2>
+
+      <form class="kx-fdrawer__form" novalidate (submit)="onSubmit($event)">
+        <div class="kx-field">
+          <label class="kx-field__label" for="kx-film-nome">
+            <span>Título do filme</span>
+          </label>
+          <div class="kx-field__control" [class.is-invalid]="fieldError('nome') !== null">
+            <input
+              id="kx-film-nome"
+              type="text"
+              class="kx-field__input"
+              placeholder="ex.: V de Vingança"
+              [formField]="filmForm.nome"
+            />
+          </div>
+          @if (fieldError('nome'); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+        </div>
+
+        <div class="kx-field">
+          <label class="kx-field__label" for="kx-film-diretor">
+            <span>Diretor</span>
+          </label>
+          <div class="kx-field__control" [class.is-invalid]="fieldError('diretor') !== null">
+            <input
+              id="kx-film-diretor"
+              type="text"
+              class="kx-field__input"
+              placeholder="ex.: James McTeigue"
+              [formField]="filmForm.diretor"
+            />
+          </div>
+          @if (fieldError('diretor'); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+        </div>
+
+        <div class="kx-fdrawer__row">
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-film-duracao">
+              <span>Duração (min)</span>
+            </label>
+            <div class="kx-field__control" [class.is-invalid]="fieldError('duracao') !== null">
+              <input
+                id="kx-film-duracao"
+                type="number"
+                class="kx-field__input kx-field__input--mono"
+                [formField]="filmForm.duracao"
+              />
+            </div>
+            @if (fieldError('duracao'); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            }
+          </div>
+
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-film-classificacao">
+              <span>Classificação</span>
+            </label>
+            <div class="kx-field__control">
+              <select
+                id="kx-film-classificacao"
+                class="kx-field__select"
+                [value]="filmForm.classificacaoIndicativa().value()"
+                (change)="onAgeSelectChange($event)"
+              >
+                @for (opt of ageOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="kx-field">
+          <label class="kx-field__label" for="kx-film-img">
+            <span>URL do pôster</span>
+          </label>
+          <div class="kx-field__control" [class.is-invalid]="fieldError('imagemUrl') !== null">
+            <input
+              id="kx-film-img"
+              type="url"
+              class="kx-field__input kx-field__input--mono"
+              placeholder="https://..."
+              [formField]="filmForm.imagemUrl"
+              (input)="onPreviewUrlInput()"
+            />
+          </div>
+          @if (fieldError('imagemUrl'); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+
+          @if (previewUrl()) {
+            <div class="kx-poster-preview">
+              @if (!previewBroken()) {
+                <img
+                  class="kx-poster-preview__img"
+                  [src]="previewUrl()"
+                  alt="Prévia do pôster"
+                  (error)="onPreviewError()"
+                />
+              } @else {
+                <span class="kx-mono kx-poster-preview__fallback">URL INDISPONÍVEL</span>
+              }
+              <span class="kx-mono kx-poster-preview__label">PRÉVIA DO PÔSTER</span>
+            </div>
+          }
+        </div>
+
+        <div class="kx-field">
+          <span class="kx-field__label">
+            <span>Gêneros vinculados</span>
+            <span class="kx-mono">{{ selectedGenreIds().length }} SELEC.</span>
+          </span>
+
+          @if (availableGenres().length === 0) {
+            <p class="kx-field__error">
+              Nenhum gênero carregado. Cadastre gêneros em /generos primeiro.
+            </p>
+          } @else {
+            <div class="kx-genre-picker" role="group" aria-label="Selecionar gêneros do filme">
+              @for (genre of availableGenres(); track genre.id) {
+                <button
+                  type="button"
+                  class="kx-genre-pick kx-mono"
+                  [class.is-selected]="isGenreSelected(genre.id)"
+                  [attr.aria-pressed]="isGenreSelected(genre.id)"
+                  (click)="toggleGenre(genre.id)"
+                >
+                  {{ genre.nome }}
+                </button>
+              }
+            </div>
+          }
+
+          @if (genresError(); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+        </div>
+
+        <div class="kx-field">
+          <label class="kx-field__label" for="kx-film-sinopse">
+            <span>Sinopse</span>
+          </label>
+          <div class="kx-field__control" [class.is-invalid]="fieldError('sinopse') !== null">
+            <textarea
+              id="kx-film-sinopse"
+              class="kx-field__textarea"
+              placeholder="Descreva a sinopse oficial do filme..."
+              [formField]="filmForm.sinopse"
+            ></textarea>
+          </div>
+          @if (fieldError('sinopse'); as err) {
+            <p class="kx-field__error" role="alert">{{ err }}</p>
+          }
+        </div>
+
+        @if (apiError(); as err) {
+          <div class="kx-alert kx-alert--danger" role="alert">
+            <p class="kx-alert__title">{{ err.title }}</p>
+            <p class="kx-alert__detail">{{ err.detail }}</p>
+          </div>
+        }
+
+        <div class="kx-fdrawer__actions">
+          <button
+            type="button"
+            class="kx-btn kx-btn-ghost"
+            [disabled]="isSubmitting()"
+            (click)="onClose()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="kx-btn kx-btn-primary"
+            [disabled]="isSubmitting()"
+            [attr.aria-busy]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <span>SALVANDO...</span>
+            } @else {
+              <span>{{ isEditMode() ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR FILME' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </aside>
+}

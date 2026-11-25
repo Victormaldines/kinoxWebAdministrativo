@@ -1,0 +1,378 @@
+<section id="painel" class="kx-panel" aria-labelledby="panel-heading">
+  <!-- Film-Strip Perforation Threshold -->
+  <div class="kx-film-strip" aria-hidden="true"></div>
+  <div class="kx-panel__env-bar">
+    <div class="kx-container kx-panel__env-inner kx-mono">
+      <span>API · KINOXAPI.ONRENDER.COM</span>
+      @if (auth.isAuthenticated()) {
+        <span class="kx-env-auth-ok">AUTH · JWT ATIVO ({{ auth.operatorLabel() }})</span>
+      } @else {
+        <a class="kx-env-auth-link" routerLink="/login">
+          AUTH · NÃO AUTENTICADO · ENTRAR →
+        </a>
+      }
+      <span>MODO · PROTÓTIPO MESTRE (DADOS ILUSTRATIVOS + /FILMES)</span>
+    </div>
+  </div>
+
+  <div class="kx-container kx-panel__body">
+    <!-- Command Header (no eyebrow/kicker above h1) -->
+    <header class="kx-panel__header">
+      <div class="kx-panel__title-block">
+        <h1 id="panel-heading" class="kx-display kx-panel__title">Central Administrativa</h1>
+        <p class="kx-panel__lead">
+          Acesso direto às operações da Kinox Cinema API — cadastro de filmes, programação de
+          sessões, salas e assentos físicos, taxonomia de gêneros, auditoria de bilheteria e
+          controle de administradores.
+        </p>
+      </div>
+
+      <div class="kx-panel__header-actions">
+        @if (auth.isAuthenticated()) {
+          <a
+            class="kx-btn kx-btn-primary"
+            routerLink="/filmes"
+            [queryParams]="{ novo: 1 }"
+          >
+            <span>+ Novo filme</span>
+          </a>
+          <a class="kx-btn kx-btn-ghost" routerLink="/generos">
+            <span>Gêneros</span>
+          </a>
+        } @else {
+          <a class="kx-btn kx-btn-primary" routerLink="/login">
+            <span>Entrar na cabine</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        }
+      </div>
+    </header>
+
+    <!-- Operational Telemetry Ledger (Dashed Grid Rules) -->
+    <div class="kx-ledger" role="region" aria-label="Resumo operacional do cinema">
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">FILMES NO ACERVO</span>
+        <strong class="kx-ledger__value kx-mono">10</strong>
+        <span class="kx-ledger__meta kx-mono">1 ativo na API · 9 ilustrativos</span>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">SESSÕES HOJE</span>
+        <strong class="kx-ledger__value kx-mono">18</strong>
+        <span class="kx-ledger__meta kx-mono">74% ocupação média</span>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">SALAS OPERACIONAIS</span>
+        <strong class="kx-ledger__value kx-mono">05/06</strong>
+        <span class="kx-ledger__meta kx-mono">IMAX · 3D · 2D · 526 assentos</span>
+      </div>
+      <div class="kx-ledger__cell kx-halftone-subtle">
+        <span class="kx-ledger__label kx-mono">INGRESSOS EMITIDOS</span>
+        <strong class="kx-ledger__value kx-mono">642</strong>
+        <span class="kx-ledger__meta kx-mono">41 endpoints mapeados</span>
+      </div>
+    </div>
+
+    <div class="kx-ruler-ticks" aria-hidden="true"></div>
+
+    <!-- Filter & Search Control Bar -->
+    <div class="kx-toolbar">
+      <div class="kx-search">
+        <label class="kx-sr-only" for="kx-module-search">
+          Filtrar módulos ou rotas da API Kinox
+        </label>
+        <svg
+          class="kx-search__icon"
+          viewBox="0 0 18 18"
+          width="16"
+          height="16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4" />
+          <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" />
+        </svg>
+        <input
+          id="kx-module-search"
+          type="search"
+          class="kx-search__input kx-mono"
+          placeholder="Buscar módulo, rota ou verbo (/filmes, PATCH)..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+        />
+        @if (searchQuery()) {
+          <button
+            type="button"
+            class="kx-search__clear kx-mono"
+            aria-label="Limpar busca"
+            (click)="clearFilters()"
+          >
+            LIMPAR
+          </button>
+        }
+      </div>
+
+      <div class="kx-tabs" role="tablist" aria-label="Filtrar por domínio administrativo">
+        @for (cat of categories(); track cat.id) {
+          <button
+            type="button"
+            role="tab"
+            class="kx-tab kx-mono"
+            [class.is-active]="activeCategory() === cat.id"
+            [attr.aria-selected]="activeCategory() === cat.id"
+            (click)="selectCategory(cat.id)"
+          >
+            {{ cat.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    @if (filteredModules().length === 0) {
+      <div class="kx-empty" role="status">
+        <h2 class="kx-display kx-empty__title">Nenhum módulo encontrado</h2>
+        <p class="kx-empty__copy">
+          Não encontramos operações ou endpoints para
+          <span class="kx-mono">"{{ searchQuery() }}"</span>.
+        </p>
+        <button type="button" class="kx-btn kx-btn-primary" (click)="clearFilters()">
+          Restaurar todos os módulos
+        </button>
+      </div>
+    }
+
+    <!-- BAND 1: Programação & Exibição (Filmes + Sessões) -->
+    @if (programmingModules().length > 0) {
+      <div class="kx-band kx-band--programming" aria-label="Programação e Exibição">
+        @for (mod of programmingModules(); track mod.id) {
+          <article [id]="'mod-' + mod.id" class="kx-console">
+            <div class="kx-console__top">
+              <div>
+                <h2 class="kx-display kx-console__title">{{ mod.title }}</h2>
+                <p class="kx-console__subtitle">{{ mod.subtitle }}</p>
+              </div>
+              <span class="kx-route-chip kx-mono">{{ mod.primaryRoute }}</span>
+            </div>
+
+            @if (mod.id === 'filmes') {
+              <div class="kx-mini-table" aria-label="Amostra de filmes cadastrados">
+                @for (film of featuredFilms(); track film.id) {
+                  <button
+                    type="button"
+                    class="kx-mini-row"
+                    (click)="onOpenFilm(film)"
+                  >
+                    <span class="kx-mini-row__code kx-mono">{{ film.reelCode }}</span>
+                    <span class="kx-mini-row__main">
+                      <strong>{{ film.title }}</strong>
+                      <small class="kx-mono">{{ film.director }} · {{ film.durationMinutes }} min</small>
+                    </span>
+                    <span class="kx-mini-row__end kx-mono">
+                      @if (film.fromLiveApi) {
+                        <span class="kx-api-pill">API REAL</span>
+                      } @else {
+                        <span>{{ film.ageRating }}</span>
+                      }
+                    </span>
+                  </button>
+                }
+              </div>
+            }
+
+            @if (mod.id === 'sessoes') {
+              <div class="kx-timetable" aria-label="Prévia da grade diária de sessões">
+                @for (session of screenings(); track session.id) {
+                  <div class="kx-timetable__row">
+                    <span class="kx-timetable__time kx-mono">{{ session.time }}</span>
+                    <span class="kx-timetable__film">
+                      <strong>{{ session.filmTitle }}</strong>
+                      <small class="kx-mono">{{ session.roomName }} · {{ session.audioType }} · {{ session.format }}</small>
+                    </span>
+                    <div class="kx-occupancy">
+                      <div class="kx-occupancy__track" aria-hidden="true">
+                        <span
+                          class="kx-occupancy__fill"
+                          [class.is-full]="!session.available"
+                          [style.width.%]="occupancyPercent(session)"
+                        ></span>
+                      </div>
+                      <span class="kx-occupancy__num kx-mono">
+                        {{ session.occupiedSeats }}/{{ session.totalSeats }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="kx-console__footer">
+              <div class="kx-verbs" aria-label="Métodos HTTP disponíveis">
+                @for (verb of uniqueVerbs(mod); track verb) {
+                  <span class="kx-verb-badge" [attr.data-verb]="verb">{{ verb }}</span>
+                }
+              </div>
+
+              @if (mod.id === 'filmes') {
+                @if (auth.isAuthenticated()) {
+                  <a class="kx-btn kx-btn-primary" routerLink="/filmes">
+                    <span>{{ mod.primaryActionLabel }}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+              } @else if (mod.id === 'sessoes') {
+                @if (auth.isAuthenticated()) {
+                  <a class="kx-btn kx-btn-primary" routerLink="/sessoes">
+                    <span>{{ mod.primaryActionLabel }}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+              } @else {
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-ghost"
+                  (click)="onOpenModule(mod)"
+                >
+                  <span>{{ mod.primaryActionLabel }}</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- BAND 2: Infraestrutura & Taxonomia (Salas + Gêneros — asymmetric split) -->
+    @if (infrastructureModules().length > 0) {
+      <div class="kx-band kx-band--infra" aria-label="Infraestrutura e Taxonomia">
+        @for (mod of infrastructureModules(); track mod.id) {
+          <article [id]="'mod-' + mod.id" class="kx-console kx-console--infra">
+            <div class="kx-console__top">
+              <div>
+                <h2 class="kx-display kx-console__title">{{ mod.title }}</h2>
+                <p class="kx-console__subtitle">{{ mod.subtitle }}</p>
+              </div>
+              <span class="kx-route-chip kx-mono">{{ mod.primaryRoute }}</span>
+            </div>
+
+            @if (mod.id === 'salas') {
+              <div class="kx-rooms-grid" aria-label="Status das salas físicas">
+                @for (room of rooms(); track room.numero) {
+                  <div class="kx-room-tile" [class.is-offline]="!room.isDisponivel">
+                    <div class="kx-room-tile__head kx-mono">
+                      <span>SALA 0{{ room.numero }}</span>
+                      <span>{{ room.isDisponivel ? 'ATIVA' : 'MANUT.' }}</span>
+                    </div>
+                    <div class="kx-room-tile__specs kx-mono">
+                      <span>{{ room.capacidade }} LUG.</span>
+                      <span>{{ room.preco | currency:'BRL':'symbol':'1.2-2' }}</span>
+                    </div>
+                    <div class="kx-room-tile__flags kx-mono">
+                      @if (room.isImax) {
+                        <span class="kx-flag-sepia">IMAX</span>
+                      }
+                      @if (room.is3d) {
+                        <span>3D</span>
+                      }
+                      @if (!room.isImax && !room.is3d) {
+                        <span>2D PADRÃO</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (mod.id === 'generos') {
+              <div class="kx-genres-board kx-halftone">
+                <div class="kx-genres-list">
+                  @for (genre of genres(); track genre) {
+                    <span class="kx-genre-tag kx-mono">{{ genre }}</span>
+                  }
+                </div>
+                <p class="kx-genres-note kx-mono">
+                  Gêneros cadastrados aqui ficam disponíveis para seleção ao criar ou editar um filme.
+                </p>
+              </div>
+            }
+
+            <div class="kx-console__footer">
+              <div class="kx-verbs">
+                @for (verb of uniqueVerbs(mod); track verb) {
+                  <span class="kx-verb-badge" [attr.data-verb]="verb">{{ verb }}</span>
+                }
+              </div>
+              @if (mod.id === 'generos') {
+                @if (auth.isAuthenticated()) {
+                  <a class="kx-btn kx-btn-primary" routerLink="/generos">
+                    <span>{{ mod.primaryActionLabel }}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+              } @else if (mod.id === 'salas') {
+                @if (auth.isAuthenticated()) {
+                  <a class="kx-btn kx-btn-primary" routerLink="/salas">
+                    <span>{{ mod.primaryActionLabel }}</span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                }
+              } @else {
+                <button type="button" class="kx-btn kx-btn-ghost" (click)="onOpenModule(mod)">
+                  <span>{{ mod.primaryActionLabel }}</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    <!-- BAND 3: Bilheteria, Clientes & Governança (Dense Editorial Ledger Rows) -->
+    @if (governanceAndTicketingModules().length > 0) {
+      <div id="mod-bilheteria" class="kx-band-list" aria-label="Bilheteria e Governança">
+        @for (mod of governanceAndTicketingModules(); track mod.id) {
+          <article [id]="'mod-' + mod.id" class="kx-ledger-row">
+            <div class="kx-ledger-row__id kx-mono">
+              <span>{{ mod.code }}</span>
+              <span class="kx-route-chip">{{ mod.primaryRoute }}</span>
+            </div>
+
+            <div class="kx-ledger-row__content">
+              <h2 class="kx-display kx-ledger-row__title">{{ mod.title }}</h2>
+              <p class="kx-ledger-row__desc">{{ mod.subtitle }}</p>
+            </div>
+
+            <div class="kx-ledger-row__stat kx-mono">
+              <strong>{{ mod.countValue }}</strong>
+              <span>{{ mod.countUnit }}</span>
+            </div>
+
+            <div class="kx-ledger-row__action">
+              <button type="button" class="kx-btn kx-btn-ghost" (click)="onOpenModule(mod)">
+                <span>Inspecionar</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Archival Cinema Footer -->
+  <footer class="kx-footer">
+    <div class="kx-film-strip" aria-hidden="true"></div>
+    <div class="kx-container kx-footer__inner kx-mono">
+      <span>KINOX ADMIN · PROTÓTIPO DE REFERÊNCIA VISUAL</span>
+      <a
+        class="kx-footer__link"
+        href="https://kinoxapi.onrender.com/swagger-ui/index.html"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        SWAGGER API DOCS ↗
+      </a>
+    </div>
+  </footer>
+</section>

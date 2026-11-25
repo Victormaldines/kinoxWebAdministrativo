@@ -1,0 +1,221 @@
+<div class="kx-film-grain" aria-hidden="true"></div>
+
+<app-admin-header resourcePath="/generos" />
+
+<main class="kx-crud-page">
+  <div class="kx-container kx-crud-page__body">
+    <header class="kx-crud-header">
+      <div>
+        <h1 class="kx-display kx-crud-header__title">Gêneros</h1>
+        <p class="kx-crud-header__lead">
+          Cadastro e remoção dos gêneros usados para classificar os filmes do catálogo e facilitar a
+          busca na programação.
+        </p>
+      </div>
+
+      <div class="kx-crud-header__actions">
+        <a class="kx-btn kx-btn-ghost" routerLink="/filmes">
+          <span>Ir para Filmes</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <button
+          type="button"
+          class="kx-btn kx-btn-ghost"
+          [disabled]="isLoading()"
+          (click)="loadGeneros()"
+        >
+          Atualizar
+        </button>
+      </div>
+    </header>
+
+    @if (feedbackMessage(); as msg) {
+      <div class="kx-alert kx-alert--ok kx-crud-banner" role="status">
+        <p class="kx-alert__title">Operação concluída</p>
+        <p class="kx-alert__detail">{{ msg }}</p>
+      </div>
+    }
+
+    @if (actionError(); as err) {
+      <div class="kx-alert kx-alert--danger kx-crud-banner" role="alert">
+        <p class="kx-alert__title">{{ err.title }}</p>
+        <p class="kx-alert__detail">{{ err.detail }}</p>
+      </div>
+    }
+
+    <div class="kx-generos-grid">
+      <!-- Left Column: Live Genres Catalog -->
+      <section class="kx-generos-list-pane" aria-label="Gêneros cadastrados">
+        <div class="kx-generos-toolbar">
+          <div class="kx-search">
+            <label class="kx-sr-only" for="kx-genre-search">Filtrar gêneros</label>
+            <svg
+              class="kx-search__icon"
+              viewBox="0 0 18 18"
+              width="16"
+              height="16"
+              fill="none"
+              aria-hidden="true"
+            >
+              <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4" />
+              <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" />
+            </svg>
+            <input
+              id="kx-genre-search"
+              type="search"
+              class="kx-search__input kx-mono"
+              placeholder="Filtrar por nome ou ID..."
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
+            />
+            @if (searchQuery()) {
+              <button type="button" class="kx-search__clear kx-mono" (click)="clearSearch()">
+                LIMPAR
+              </button>
+            }
+          </div>
+
+          <span class="kx-generos-count kx-mono">
+            {{ filteredGeneros().length }} / {{ generos().length }} GÊNEROS
+          </span>
+        </div>
+
+        @if (isLoading()) {
+          <div class="kx-table-shell" aria-busy="true" aria-label="Carregando gêneros">
+            @for (item of [1, 2, 3, 4, 5]; track item) {
+              <div class="kx-skeleton-row"></div>
+            }
+          </div>
+        } @else if (loadError(); as err) {
+          <div class="kx-alert kx-alert--danger" role="alert">
+            <p class="kx-alert__title">{{ err.title }}</p>
+            <p class="kx-alert__detail">{{ err.detail }}</p>
+            <div class="kx-retry-wrap">
+              <button type="button" class="kx-btn kx-btn-ghost kx-btn-sm" (click)="loadGeneros()">
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        } @else if (filteredGeneros().length === 0) {
+          <div class="kx-empty-box" role="status">
+            <h2 class="kx-display kx-empty-box__title">Nenhum gênero encontrado</h2>
+            <p class="kx-empty-box__copy">
+              @if (searchQuery()) {
+                Nenhum resultado para "{{ searchQuery() }}".
+              } @else {
+                Cadastre o primeiro gênero no formulário ao lado para vinculá-lo aos filmes.
+              }
+            </p>
+            @if (searchQuery()) {
+              <button type="button" class="kx-btn kx-btn-ghost kx-btn-sm" (click)="clearSearch()">
+                Limpar busca
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="kx-table-shell">
+            <div class="kx-genre-row kx-genre-row--head kx-mono">
+              <span>ID</span>
+              <span>NOME DO GÊNERO</span>
+              <span class="kx-genre-row__actions-head">AÇÃO</span>
+            </div>
+
+            @for (genre of filteredGeneros(); track genre.id) {
+              <div class="kx-genre-row">
+                <span class="kx-genre-row__id kx-mono">#{{ genre.id }}</span>
+                <span class="kx-genre-row__name">{{ genre.nome }}</span>
+                <div class="kx-genre-row__actions">
+                  @if (confirmingDeleteId() === genre.id) {
+                    <button
+                      type="button"
+                      class="kx-btn kx-btn-danger kx-btn-sm"
+                      [disabled]="deletingId() === genre.id"
+                      (click)="confirmDelete(genre)"
+                    >
+                      {{ deletingId() === genre.id ? 'REMOVENDO...' : 'CONFIRMAR' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="kx-btn kx-btn-ghost kx-btn-sm"
+                      [disabled]="deletingId() === genre.id"
+                      (click)="cancelDelete()"
+                    >
+                      CANCELAR
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="kx-btn kx-btn-danger kx-btn-sm"
+                      (click)="requestDelete(genre.id)"
+                    >
+                      REMOVER
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Right Column: Create Genre Form (Signal Forms) -->
+      <aside class="kx-generos-form-pane" aria-labelledby="new-genre-heading">
+        <div class="kx-generos-form-head">
+          <h2 id="new-genre-heading" class="kx-display kx-generos-form-title">Cadastrar gênero</h2>
+          <span class="kx-route-chip kx-mono">POST /generos</span>
+        </div>
+
+        <p class="kx-generos-form-desc">
+          Adicione uma nova categoria para ficar disponível imediatamente na ficha de cadastro e
+          edição de filmes.
+        </p>
+
+        <form class="kx-generos-form" novalidate (submit)="onCreateGenre($event)">
+          <div class="kx-field">
+            <label class="kx-field__label" for="kx-new-genre-name">
+              <span>Nome do gênero</span>
+              <span class="kx-mono kx-field-hint">OBRIGATÓRIO</span>
+            </label>
+            <div
+              class="kx-field__control"
+              [class.is-invalid]="nomeError() !== null || isDuplicateName()"
+            >
+              <input
+                id="kx-new-genre-name"
+                type="text"
+                class="kx-field__input"
+                placeholder="ex.: Documentário, Noir, Animação"
+                [formField]="genreForm.nome"
+                [attr.aria-invalid]="nomeError() !== null || isDuplicateName()"
+              />
+            </div>
+            @if (nomeError(); as err) {
+              <p class="kx-field__error" role="alert">{{ err }}</p>
+            } @else if (isDuplicateName()) {
+              <p class="kx-field__error" role="alert">
+                Este gênero já está cadastrado no catálogo.
+              </p>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="kx-btn kx-btn-primary kx-generos-submit"
+            [disabled]="isCreating() || isDuplicateName()"
+            [attr.aria-busy]="isCreating()"
+          >
+            {{ isCreating() ? 'CADASTRANDO...' : '+ CADASTRAR GÊNERO' }}
+          </button>
+        </form>
+
+        <div class="kx-generos-note kx-halftone-subtle kx-mono">
+          <span>VÍNCULO COM FILMES</span>
+          <p>
+            Gêneros cadastrados aqui são listados automaticamente como opções de seleção ao criar
+            ou editar um filme em <strong>/filmes</strong>.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>

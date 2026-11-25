@@ -1,0 +1,124 @@
+@if (selectedModule() || selectedFilm()) {
+  <div class="kx-drawer-backdrop" (click)="onClose()" aria-hidden="true"></div>
+
+  <aside
+    class="kx-drawer"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="selectedModule() ? 'Detalhes do módulo ' + selectedModule()!.title : 'Ficha do filme ' + selectedFilm()!.title"
+  >
+    <div class="kx-drawer__head">
+      <span class="kx-mono kx-drawer__code">
+        @if (selectedModule(); as mod) {
+          {{ mod.code }} · {{ mod.primaryRoute }}
+        } @else if (selectedFilm(); as film) {
+          ROLO {{ film.reelCode }} · {{ film.formatLabel }}
+        }
+      </span>
+
+      <button
+        type="button"
+        class="kx-drawer__close kx-mono"
+        aria-label="Fechar painel de inspeção"
+        (click)="onClose()"
+      >
+        ESC · FECHAR
+      </button>
+    </div>
+
+    <div class="kx-drawer__body">
+      @if (selectedModule(); as mod) {
+        <h2 class="kx-display kx-drawer__title">{{ mod.title }}</h2>
+        <p class="kx-drawer__desc">{{ mod.subtitle }}</p>
+
+        <div class="kx-drawer__meta-strip kx-mono">
+          <div>
+            <span>DOMÍNIO</span>
+            <strong>{{ mod.categoryLabel }}</strong>
+          </div>
+          <div>
+            <span>VOLUME</span>
+            <strong>{{ mod.countValue }} {{ mod.countUnit }}</strong>
+          </div>
+        </div>
+
+        <h3 class="kx-drawer__section-title kx-mono">ENDPOINTS DA KINOX API</h3>
+        <div class="kx-endpoint-list">
+          @for (ep of mod.endpoints; track ep.method + ep.path) {
+            <div class="kx-endpoint-item">
+              <div class="kx-endpoint-item__top">
+                <span class="kx-verb-badge" [attr.data-verb]="ep.method">{{ ep.method }}</span>
+                <code class="kx-mono kx-endpoint-item__path">{{ ep.path }}</code>
+                <span class="kx-mono kx-endpoint-item__auth">{{ ep.auth }}</span>
+              </div>
+              <p class="kx-endpoint-item__summary">{{ ep.summary }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="kx-drawer__notice kx-halftone-subtle">
+          @if (auth.isAuthenticated()) {
+            <p class="kx-mono">
+              SESSÃO ATIVA ({{ auth.operatorLabel() }}): token Bearer JWT pronto para autenticar
+              as operações exclusivas ADMIN de <strong>{{ mod.title }}</strong>.
+            </p>
+          } @else {
+            <p class="kx-mono">
+              OPERAÇÕES ADMIN PROTEGIDAS: autentique-se para emitir seu token JWT Bearer antes de
+              operar <strong>{{ mod.title }}</strong>.
+            </p>
+          }
+        </div>
+
+        @if (!auth.isAuthenticated()) {
+          <div class="kx-drawer__actions">
+            <a class="kx-btn kx-btn-primary" routerLink="/login" (click)="onClose()">
+              <span>Autenticar como ADMIN</span>
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        }
+      } @else if (selectedFilm(); as film) {
+        <div class="kx-drawer__still">
+          <img
+            [ngSrc]="film.imagePath"
+            [alt]="film.imageAlt"
+            width="520"
+            height="292"
+            priority
+          />
+        </div>
+
+        <h2 class="kx-display kx-drawer__title">{{ film.title }}</h2>
+        <p class="kx-drawer__desc">{{ film.synopsis }}</p>
+
+        <div class="kx-drawer__meta-strip kx-mono">
+          <div>
+            <span>DIREÇÃO</span>
+            <strong>{{ film.director }}</strong>
+          </div>
+          <div>
+            <span>DURAÇÃO / CLASS.</span>
+            <strong>{{ film.durationMinutes }} MIN · {{ film.ageRating }}</strong>
+          </div>
+          <div>
+            <span>PRÓXIMA SESSÃO</span>
+            <strong>{{ film.scheduledRoom }} · {{ film.nextSession }}</strong>
+          </div>
+        </div>
+
+        <div class="kx-drawer__genres">
+          @for (genre of film.genres; track genre) {
+            <span class="kx-drawer__genre-chip kx-mono">{{ genre }}</span>
+          }
+        </div>
+
+        <div class="kx-drawer__actions">
+          <button type="button" class="kx-btn kx-btn-primary" (click)="onGoToFilmsModule()">
+            Inspecionar endpoints de /filmes
+          </button>
+        </div>
+      }
+    </div>
+  </aside>
+}

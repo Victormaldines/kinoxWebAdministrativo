@@ -1,0 +1,259 @@
+<div class="kx-film-grain" aria-hidden="true"></div>
+
+<app-admin-header resourcePath="/filmes" />
+
+<main class="kx-filmes-page">
+  <div class="kx-container kx-filmes-page__body">
+    <header class="kx-filmes-header">
+      <div>
+        <h1 class="kx-display kx-filmes-header__title">Filmes</h1>
+        <p class="kx-filmes-header__lead">
+          Catálogo oficial em cartaz na Kinox API — cadastro de ficha técnica, sinopse, duração,
+          classificação indicativa, pôster e vínculo com gêneros.
+        </p>
+      </div>
+
+      <div class="kx-filmes-header__actions">
+        <button type="button" class="kx-btn kx-btn-primary" (click)="openCreateDrawer()">
+          + Novo filme
+        </button>
+        <a class="kx-btn kx-btn-ghost" routerLink="/generos">Gêneros</a>
+        <button
+          type="button"
+          class="kx-btn kx-btn-ghost"
+          [disabled]="isLoading()"
+          (click)="loadCatalog()"
+        >
+          Atualizar
+        </button>
+      </div>
+    </header>
+
+    <!-- Operational Ledger -->
+    <div class="kx-ledger" role="region" aria-label="Resumo do catálogo de filmes">
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">TOTAL NO CATÁLOGO</span>
+        <strong class="kx-ledger__value kx-mono">{{ filmes().length }}</strong>
+        <span class="kx-ledger__meta kx-mono">sincronizado com GET /filmes</span>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">GÊNEROS DISPONÍVEIS</span>
+        <strong class="kx-ledger__value kx-mono">{{ generos().length }}</strong>
+        <span class="kx-ledger__meta kx-mono">carregados de GET /generos</span>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">DURAÇÃO MÉDIA</span>
+        <strong class="kx-ledger__value kx-mono">{{ averageDuration() }} MIN</strong>
+        <span class="kx-ledger__meta kx-mono">média do acervo atual</span>
+      </div>
+      <div class="kx-ledger__cell kx-halftone-subtle">
+        <span class="kx-ledger__label kx-mono">RESULTADOS VISÍVEIS</span>
+        <strong class="kx-ledger__value kx-mono">{{ filteredFilmes().length }}</strong>
+        <span class="kx-ledger__meta kx-mono">após busca e filtro</span>
+      </div>
+    </div>
+
+    <div class="kx-ruler-ticks" aria-hidden="true"></div>
+
+    @if (feedbackMessage(); as msg) {
+      <div class="kx-alert kx-alert--ok kx-filmes-banner" role="status">
+        <p class="kx-alert__title">Catálogo atualizado</p>
+        <p class="kx-alert__detail">{{ msg }}</p>
+      </div>
+    }
+
+    @if (actionError(); as err) {
+      <div class="kx-alert kx-alert--danger kx-filmes-banner" role="alert">
+        <p class="kx-alert__title">{{ err.title }}</p>
+        <p class="kx-alert__detail">{{ err.detail }}</p>
+      </div>
+    }
+
+    <!-- Search & Dynamic Genre Filter Bar -->
+    <div class="kx-toolbar">
+      <div class="kx-search">
+        <label class="kx-sr-only" for="kx-filmes-search">Buscar filmes</label>
+        <svg
+          class="kx-search__icon"
+          viewBox="0 0 18 18"
+          width="16"
+          height="16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4" />
+          <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" />
+        </svg>
+        <input
+          id="kx-filmes-search"
+          type="search"
+          class="kx-search__input kx-mono"
+          placeholder="Buscar por título, diretor, sinopse ou gênero..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+        />
+        @if (searchQuery() || selectedGenreId() !== null) {
+          <button type="button" class="kx-search__clear kx-mono" (click)="clearFilters()">
+            LIMPAR
+          </button>
+        }
+      </div>
+
+      <div class="kx-tabs" role="tablist" aria-label="Filtrar filmes por gênero">
+        <button
+          type="button"
+          role="tab"
+          class="kx-tab kx-mono"
+          [class.is-active]="selectedGenreId() === null"
+          [attr.aria-selected]="selectedGenreId() === null"
+          (click)="selectGenreFilter(null)"
+        >
+          Todos ({{ filmes().length }})
+        </button>
+        @for (genre of generos(); track genre.id) {
+          <button
+            type="button"
+            role="tab"
+            class="kx-tab kx-mono"
+            [class.is-active]="selectedGenreId() === genre.id"
+            [attr.aria-selected]="selectedGenreId() === genre.id"
+            (click)="selectGenreFilter(genre.id)"
+          >
+            {{ genre.nome }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Catalog Table -->
+    @if (isLoading()) {
+      <div class="kx-filmes-table" aria-busy="true" aria-label="Carregando catálogo de filmes">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="kx-skeleton-row"></div>
+        }
+      </div>
+    } @else if (loadError(); as err) {
+      <div class="kx-alert kx-alert--danger" role="alert">
+        <p class="kx-alert__title">{{ err.title }}</p>
+        <p class="kx-alert__detail">{{ err.detail }}</p>
+        <div class="kx-retry-wrap">
+          <button type="button" class="kx-btn kx-btn-ghost kx-btn-sm" (click)="loadCatalog()">
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    } @else if (filteredFilmes().length === 0) {
+      <div class="kx-empty-box" role="status">
+        <h2 class="kx-display kx-empty-box__title">Nenhum filme encontrado</h2>
+        <p class="kx-empty-box__copy">
+          @if (searchQuery() || selectedGenreId() !== null) {
+            Nenhum título corresponde aos filtros aplicados.
+          } @else {
+            O catálogo ainda não possui filmes cadastrados na API.
+          }
+        </p>
+        @if (searchQuery() || selectedGenreId() !== null) {
+          <button type="button" class="kx-btn kx-btn-ghost" (click)="clearFilters()">
+            Limpar filtros
+          </button>
+        } @else {
+          <button type="button" class="kx-btn kx-btn-primary" (click)="openCreateDrawer()">
+            + Cadastrar primeiro filme
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="kx-filmes-table">
+        <div class="kx-film-row kx-film-row--head kx-mono">
+          <span>PÔSTER</span>
+          <span>TÍTULO · DIREÇÃO · SINOPSE</span>
+          <span>GÊNEROS</span>
+          <span>FICHA</span>
+          <span class="kx-film-row__end">AÇÕES</span>
+        </div>
+
+        @for (film of filteredFilmes(); track film.id) {
+          <article class="kx-film-row">
+            <div class="kx-film-poster">
+              @if (film.imagemUrl && !brokenPosters().has(film.id)) {
+                <img
+                  class="kx-film-poster__img"
+                  [src]="film.imagemUrl"
+                  [alt]="'Pôster de ' + film.nome"
+                  loading="lazy"
+                  (error)="markPosterBroken(film.id)"
+                />
+              } @else {
+                <span class="kx-film-poster__fallback kx-mono">35MM</span>
+              }
+            </div>
+
+            <div class="kx-film-info">
+              <div class="kx-film-info__head">
+                <span class="kx-mono kx-film-info__id">#{{ film.id }}</span>
+                <h2 class="kx-film-info__title">{{ film.nome }}</h2>
+              </div>
+              <p class="kx-film-info__director kx-mono">{{ film.diretor }}</p>
+              <p class="kx-film-info__synopsis">{{ film.sinopse }}</p>
+            </div>
+
+            <div class="kx-film-genres">
+              @for (genre of film.generos; track genre.id) {
+                <span class="kx-film-genre-tag kx-mono">{{ genre.nome }}</span>
+              }
+            </div>
+
+            <div class="kx-film-specs kx-mono">
+              <span>{{ film.duracao }} MIN</span>
+              <span class="kx-age-pill">{{ formatAgeRating(film.classificacaoIndicativa) }}</span>
+            </div>
+
+            <div class="kx-film-actions">
+              @if (confirmingDeleteId() === film.id) {
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-danger kx-btn-sm"
+                  [disabled]="deletingId() === film.id"
+                  (click)="confirmDelete(film)"
+                >
+                  {{ deletingId() === film.id ? 'REMOVENDO...' : 'CONFIRMAR' }}
+                </button>
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-ghost kx-btn-sm"
+                  [disabled]="deletingId() === film.id"
+                  (click)="cancelDelete()"
+                >
+                  CANCELAR
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-ghost kx-btn-ghost--solid kx-btn-sm"
+                  (click)="openEditDrawer(film)"
+                >
+                  EDITAR
+                </button>
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-danger kx-btn-sm"
+                  (click)="requestDelete(film.id)"
+                >
+                  REMOVER
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </div>
+</main>
+
+<app-filme-form-drawer
+  [isOpen]="isDrawerOpen()"
+  [editingFilm]="editingFilm()"
+  [availableGenres]="generos()"
+  (closeDrawer)="onCloseDrawer()"
+  (saved)="onFilmSaved($event)"
+/>

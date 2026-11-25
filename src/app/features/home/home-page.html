@@ -1,0 +1,36 @@
+<a class="kx-skip-link" href="#painel">Ir para o painel administrativo</a>
+
+<div class="kx-film-grain" aria-hidden="true"></div>
+
+<app-top-bar
+  [isScrolled]="isScrolled()"
+  [isVisible]="isIntroReady()"
+  (navigateToSection)="scrollToSection($event)"
+/>
+
+<main>
+  <app-film-constellation-hero
+    [films]="films"
+    [showConstellation]="auth.isAuthenticated()"
+    (introReadyChange)="onIntroReadyChange($event)"
+    (selectFilm)="onOpenFilm($event)"
+    (scrollToPanel)="scrollToSection('painel')"
+  />
+
+  <app-admin-operations-panel
+    [modules]="modules"
+    [films]="films"
+    [screenings]="screenings"
+    [rooms]="rooms"
+    [genres]="genres"
+    (openModule)="onOpenModule($event)"
+    (openFilm)="onOpenFilm($event)"
+  />
+</main>
+
+<app-inspector-drawer
+  [selectedModule]="selectedModule()"
+  [selectedFilm]="selectedFilm()"
+  (closeDrawer)="onCloseDrawer()"
+  (inspectModuleById)="onOpenModuleById($event)"
+/>

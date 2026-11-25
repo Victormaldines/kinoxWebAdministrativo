@@ -1,0 +1,69 @@
+<header class="kx-admin-header">
+  <div class="kx-container kx-admin-header__inner">
+    <a class="kx-admin-brand" routerLink="/" aria-label="Kinox — Voltar à Home">
+      <span class="kx-admin-brand__word">kīnox</span>
+      <span class="kx-admin-brand__tag kx-mono">ADMIN</span>
+    </a>
+
+    <nav class="kx-admin-nav" aria-label="Navegação administrativa">
+      <a
+        class="kx-admin-nav__link kx-mono"
+        routerLink="/"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        HOME
+      </a>
+      <a
+        class="kx-admin-nav__link kx-mono"
+        routerLink="/filmes"
+        routerLinkActive="is-active"
+      >
+        FILMES
+      </a>
+      <a
+        class="kx-admin-nav__link kx-mono"
+        routerLink="/generos"
+        routerLinkActive="is-active"
+      >
+        GÊNEROS
+      </a>
+      <a
+        class="kx-admin-nav__link kx-mono"
+        routerLink="/salas"
+        routerLinkActive="is-active"
+      >
+        SALAS
+      </a>
+      <a
+        class="kx-admin-nav__link kx-mono"
+        routerLink="/sessoes"
+        routerLinkActive="is-active"
+      >
+        SESSÕES
+      </a>
+    </nav>
+
+    <div class="kx-admin-session kx-mono">
+      @if (auth.isAuthenticated()) {
+        <span class="kx-admin-session__dot" aria-hidden="true"></span>
+        <span class="kx-admin-session__user">{{ auth.operatorLabel() }}</span>
+        <button type="button" class="kx-admin-session__exit" (click)="onLogout()">
+          SAIR
+        </button>
+      } @else {
+        <a class="kx-admin-session__login" routerLink="/login">ENTRAR</a>
+      }
+    </div>
+  </div>
+
+  <div class="kx-film-strip" aria-hidden="true"></div>
+
+  <div class="kx-admin-env">
+    <div class="kx-container kx-admin-env__inner kx-mono">
+      <span>API · {{ apiHost }}</span>
+      <span>RECURSO · {{ resourcePath() }}</span>
+      <span>JWT · {{ auth.isAuthenticated() ? 'AUTENTICADO (' + auth.operatorLabel() + ')' : 'NÃO AUTENTICADO' }}</span>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,199 @@
+<div class="kx-film-grain" aria-hidden="true"></div>
+
+<app-admin-header resourcePath="/sessoes" />
+
+<main class="kx-sessoes-page">
+  <div class="kx-container kx-sessoes-page__body">
+    <header class="kx-sessoes-header">
+      <div>
+        <h1 class="kx-display kx-sessoes-header__title">Grade de Sessões</h1>
+        <p class="kx-sessoes-header__lead">
+          Todas as sessões futuras programadas na Kinox API — horários, salas, modalidade de áudio,
+          ocupação em tempo real e mapa visual de assentos.
+        </p>
+      </div>
+
+      <div class="kx-sessoes-header__actions">
+        <button
+          type="button"
+          class="kx-btn kx-btn-ghost"
+          [disabled]="isLoading()"
+          (click)="loadSessoes()"
+        >
+          Atualizar grade
+        </button>
+      </div>
+    </header>
+
+    <!-- Operational Ledger -->
+    <div class="kx-ledger" role="region" aria-label="Resumo das próximas sessões">
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">PRÓXIMAS SESSÕES</span>
+        <strong class="kx-ledger__value kx-mono">{{ upcomingSessoes().length }}</strong>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">ASSENTOS OCUPADOS</span>
+        <strong class="kx-ledger__value kx-mono">
+          {{ totalOccupiedSeats() }}/{{ totalSeatInventory() }}
+        </strong>
+        <span class="kx-ledger__meta kx-mono">somatório das sessões futuras</span>
+      </div>
+      <div class="kx-ledger__cell">
+        <span class="kx-ledger__label kx-mono">OCUPAÇÃO MÉDIA</span>
+        <strong class="kx-ledger__value kx-mono">{{ averageOccupancy() }}%</strong>
+        <span class="kx-ledger__meta kx-mono">taxa atual da grade</span>
+      </div>
+      <div class="kx-ledger__cell kx-halftone-subtle">
+        <span class="kx-ledger__label kx-mono">SALAS EM EXIBIÇÃO</span>
+        <strong class="kx-ledger__value kx-mono">{{ distinctRoomsCount() }}</strong>
+        <span class="kx-ledger__meta kx-mono">sincronizado com GET /sessoes</span>
+      </div>
+    </div>
+
+    <div class="kx-ruler-ticks" aria-hidden="true"></div>
+
+    <!-- Search & Filter Toolbar -->
+    <div class="kx-toolbar">
+      <div class="kx-search">
+        <label class="kx-sr-only" for="kx-sessoes-search">Filtrar sessões futuras</label>
+        <svg
+          class="kx-search__icon"
+          viewBox="0 0 18 18"
+          width="16"
+          height="16"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4" />
+          <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square" />
+        </svg>
+        <input
+          id="kx-sessoes-search"
+          type="search"
+          class="kx-search__input kx-mono"
+          placeholder="Filtrar por filme, sala, data ou formato (IMAX, LEG, DUB)..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+        />
+        @if (searchQuery() || activeFilter() !== 'todas') {
+          <button type="button" class="kx-search__clear kx-mono" (click)="clearFilters()">
+            LIMPAR
+          </button>
+        }
+      </div>
+
+      <div class="kx-tabs" role="tablist" aria-label="Filtrar sessões">
+        @for (item of filters; track item.id) {
+          <button
+            type="button"
+            role="tab"
+            class="kx-tab kx-mono"
+            [class.is-active]="activeFilter() === item.id"
+            [attr.aria-selected]="activeFilter() === item.id"
+            (click)="selectFilter(item.id)"
+          >
+            {{ item.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Upcoming Screenings Timetable (matching Home's Sessões & Ocupação pattern) -->
+    <section aria-label="Listagem de sessões futuras">
+      @if (isLoading()) {
+        <div class="kx-sessoes-list" aria-busy="true" aria-label="Carregando grade de sessões">
+          @for (item of [1, 2, 3, 4]; track item) {
+            <div class="kx-skeleton-row"></div>
+          }
+        </div>
+      } @else if (loadError(); as err) {
+        <div class="kx-alert kx-alert--danger" role="alert">
+          <p class="kx-alert__title">{{ err.title }}</p>
+          <p class="kx-alert__detail">{{ err.detail }}</p>
+          <div class="kx-retry-wrap">
+            <button type="button" class="kx-btn kx-btn-ghost kx-btn-sm" (click)="loadSessoes()">
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      } @else if (filteredSessoes().length === 0) {
+        <div class="kx-empty-box" role="status">
+          <h2 class="kx-display kx-empty-box__title">Nenhuma sessão futura encontrada</h2>
+          <p class="kx-empty-box__copy">
+            @if (searchQuery() || activeFilter() !== 'todas') {
+              Nenhuma exibição futura corresponde aos filtros aplicados.
+            } @else {
+              Não há sessões agendadas a partir do horário atual na API Kinox.
+            }
+          </p>
+          @if (searchQuery() || activeFilter() !== 'todas') {
+            <button type="button" class="kx-btn kx-btn-ghost" (click)="clearFilters()">
+              Limpar filtros
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="kx-sessoes-list">
+          <div class="kx-sessao-row kx-sessao-row--head kx-mono">
+            <span>HORÁRIO / DATA</span>
+            <span>FILME · SALA · FORMATO</span>
+            <span>INGRESSO</span>
+            <span>OCUPAÇÃO</span>
+            <span class="kx-sessao-row__end">MAPA</span>
+          </div>
+
+          @for (sessao of filteredSessoes(); track sessao.id) {
+            <article class="kx-sessao-row">
+              <div class="kx-sessao-when kx-mono">
+                <strong class="kx-sessao-when__time">{{ formatTime(sessao.horarioInicio) }}</strong>
+                <span class="kx-sessao-when__date">{{ formatDate(sessao.data) }}</span>
+              </div>
+
+              <div class="kx-sessao-film">
+                <strong class="kx-sessao-film__title">{{ sessao.filme.nome }}</strong>
+                <small class="kx-sessao-film__meta kx-mono">
+                  Sala {{ formatSalaNumero(sessao.sala.numero) }} ·
+                  {{ sessao.isLegendado ? 'LEG' : 'DUB' }} ·
+                  {{ formatFormatLabel(sessao) }} ·
+                  {{ sessao.filme.duracao }} min
+                </small>
+              </div>
+
+              <div class="kx-sessao-price kx-mono">
+                {{ sessao.sala.precoDoIngresso | currency:'BRL':'symbol':'1.2-2' }}
+              </div>
+
+              <div class="kx-sessao-occ">
+                <div class="kx-sessao-occ__track" aria-hidden="true">
+                  <span
+                    class="kx-sessao-occ__fill"
+                    [class.is-full]="isFull(sessao)"
+                    [style.width.%]="occupancyPercent(sessao)"
+                  ></span>
+                </div>
+                <span class="kx-sessao-occ__num kx-mono">
+                  {{ occupiedCount(sessao) }}/{{ totalCount(sessao) }} · {{ occupancyPercent(sessao) }}%
+                </span>
+              </div>
+
+              <div class="kx-sessao-action">
+                <button
+                  type="button"
+                  class="kx-btn kx-btn-ghost kx-btn-ghost--solid kx-btn-sm"
+                  (click)="openSeatMap(sessao)"
+                >
+                  MAPA DE OCUPAÇÃO
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</main>
+
+<app-seat-map-modal
+  [sessao]="selectedSessao()"
+  (closeModal)="closeSeatMap()"
+/>
