@@ -56,7 +56,7 @@ export class FilmeFormDrawer {
   protected readonly isEditMode = computed(() => this.editingFilm() !== null);
   protected readonly previewUrl = computed(() => this.filmModel().imagemUrl.trim());
 
-  protected readonly ageOptions: readonly { value: number; label: string }[] = [
+  private readonly baseAgeOptions: readonly { value: number; label: string }[] = [
     { value: 0, label: 'Livre (0)' },
     { value: 10, label: '10 anos' },
     { value: 12, label: '12 anos' },
@@ -64,6 +64,20 @@ export class FilmeFormDrawer {
     { value: 16, label: '16 anos' },
     { value: 18, label: '18 anos' },
   ];
+
+  protected readonly ageOptions = computed(() => {
+    const current = Number(this.filmModel().classificacaoIndicativa);
+    if (
+      Number.isNaN(current) ||
+      this.baseAgeOptions.some((opt) => opt.value === current)
+    ) {
+      return this.baseAgeOptions;
+    }
+    return [
+      ...this.baseAgeOptions,
+      { value: current, label: current <= 0 ? 'Livre (0)' : `${current} anos` },
+    ].sort((a, b) => a.value - b.value);
+  });
 
   protected readonly genresError = computed(() => {
     if (!this.genresTouched()) return null;
@@ -84,8 +98,8 @@ export class FilmeFormDrawer {
         this.filmModel.set({
           nome: film.nome,
           diretor: film.diretor,
-          duracao: film.duracao,
-          classificacaoIndicativa: film.classificacaoIndicativa,
+          duracao: Number(film.duracao),
+          classificacaoIndicativa: Number(film.classificacaoIndicativa),
           imagemUrl: film.imagemUrl,
           sinopse: film.sinopse,
         });

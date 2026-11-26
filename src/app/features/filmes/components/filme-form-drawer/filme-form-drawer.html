@@ -92,8 +92,13 @@
                 [value]="filmForm.classificacaoIndicativa().value()"
                 (change)="onAgeSelectChange($event)"
               >
-                @for (opt of ageOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+                @for (opt of ageOptions(); track opt.value) {
+                  <option
+                    [value]="opt.value"
+                    [selected]="opt.value === filmForm.classificacaoIndicativa().value()"
+                  >
+                    {{ opt.label }}
+                  </option>
                 }
               </select>
             </div>

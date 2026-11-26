@@ -142,6 +142,16 @@ describe('Kinox Admin App', () => {
     expect(compiled.textContent).toContain('James McTeigue');
     expect(compiled.textContent).toContain('02:00');
     expect(compiled.textContent).not.toContain('DURAÇÃO MÉDIA');
+
+    const editButton = compiled.querySelector('.kx-film-actions .kx-btn-ghost') as HTMLButtonElement;
+    editButton.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const ageSelect = compiled.querySelector('#kx-film-classificacao') as HTMLSelectElement;
+    expect(ageSelect).toBeTruthy();
+    expect(ageSelect.value).toBe('12');
   });
 
   it('should render SalasPage and populate rooms from GET /salas', async () => {
